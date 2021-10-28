@@ -34,7 +34,6 @@ class octree:
 		if self.contained[octantIndex] < self.capacity:
 			# Insert point to octant
 			self.octants[octantIndex].append(point)
-			print(self.octants)
 		elif self.contained[octantIndex] == self.capacity:
 			# If octant is at capacity, insert point, partition
 			self.octants[octantIndex].append(point)
@@ -68,7 +67,7 @@ class octree:
 		else:
 			newCenter[0] = newCenter[0] - newWidth
 
-		if newCenter in [2, 3, 6, 7]:
+		if octantIndex in [0, 1, 4, 5]:
 			newCenter[1] = newCenter[1] + newWidth
 		else:
 			newCenter[1] = newCenter[1] - newWidth
@@ -76,7 +75,7 @@ class octree:
 		if octantIndex % 2 == 0:
 			newCenter[2] = newCenter[2] + newWidth
 		else:
-			newCenter[2] = newCenter[2] + newWidth
+			newCenter[2] = newCenter[2] - newWidth
 
 		return newCenter, newWidth
 
