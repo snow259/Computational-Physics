@@ -103,3 +103,46 @@ class octree:
 			index += 1
 
 		return index
+
+
+def insertionBenchmark(n, coordinateRange, capacity):
+	# Performs insertion of points to a new octree 5 times and reports time taken
+	print(f'Benchmarking:	n: {n}	capacity: {capacity}')
+
+	rng = np.random.default_rng()
+	timeResults = np.zeros(5)
+
+	for i in range(5):
+		# Generates new points each time
+		points = rng.integers(-coordinateRange, coordinateRange, (n, 4))
+		width = (points.max() - points.min()) * 1.1
+		center = [width / 2, width / 2, width / 2]
+
+		# Tests time taken for a single run of insertion
+		startTime = dt.datetime.now()
+		pointsInsertion(center, width, capacity, points)
+		endTime = dt.datetime.now()
+
+		timeResults[i] = (endTime - startTime).microseconds / 10**6
+
+	print(f'Seconds taken:	{timeResults.mean():.3f} ({timeResults.std():.3f})')
+	print(f'Total seconds taken:	{timeResults.sum():.3f}')
+
+
+def pointsInsertion(center, width, capacity, points):
+	# Inserts all points
+
+	newTree = octree(center, width, capacity)
+
+	for i in range(points.shape[0]):
+		newTree.insert(points[i])
+
+
+if __name__ == '__main__':
+	import numpy as np
+	import datetime as dt
+
+	n = 10**4
+	coordinateRange = 10**5
+	capacity = 1
+	insertionBenchmark(n, coordinateRange, capacity)
