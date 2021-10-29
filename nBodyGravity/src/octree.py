@@ -10,7 +10,7 @@ class octree:
 
 		# Mass contained in octant, and position of center of mass
 		self.mass = 0
-		self.com = center
+		self.com = center.copy()
 
 		# Node depth
 		self.maxDepth = 10
@@ -45,6 +45,11 @@ class octree:
 		else:
 			# Octant already partitioned, insert to octree in octant
 			self.octants[octantIndex].insert(point)
+
+		newMass = self.mass + point[3]
+		for i in range(len(self.com)):
+			self.com[i] = (self.com[i] * self.mass + point[i] * point[3]) / newMass
+		self.mass = newMass
 
 		# Always increment contained as it is required for above checks
 		self.contained[octantIndex] += 1
@@ -105,7 +110,7 @@ class octree:
 		return index
 
 
-def insertionBenchmark(n, coordinateRange, capacity):
+def insertionBenchmark(n, coordinateRange, massRange, capacity):
 	# Performs insertion of points to a new octree 5 times and reports time taken
 	print(f'Benchmarking:	n: {n}	capacity: {capacity}')
 
@@ -114,7 +119,9 @@ def insertionBenchmark(n, coordinateRange, capacity):
 
 	for i in range(5):
 		# Generates new points each time
-		points = rng.integers(-coordinateRange, coordinateRange, (n, 4))
+		positions = rng.integers(-coordinateRange, coordinateRange, (n, 3))
+		masses = rng.integers(1, massRange, (n, 1))
+		points = np.hstack((positions, masses))
 		width = (points.max() - points.min()) * 1.1
 		center = [width / 2, width / 2, width / 2]
 
@@ -144,5 +151,6 @@ if __name__ == '__main__':
 
 	n = 10**4
 	coordinateRange = 10**5
+	massRange = 10**3
 	capacity = 1
-	insertionBenchmark(n, coordinateRange, capacity)
+	insertionBenchmark(n, coordinateRange, massRange, capacity)
