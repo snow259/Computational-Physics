@@ -75,6 +75,20 @@ class testOctree(unittest.TestCase):
 		self.assertEqual(newTree.findPartitionCenterWidth(6), index6Result)
 		self.assertEqual(newTree.findPartitionCenterWidth(7), index7Result)
 
+	def findCom(self, points):
+		# Finds the center of mass of a given list of points
+		com = [0, 0, 0]
+		mass = 0
+		for point in points:
+			mass += point[3]
+			for i in range(len(com)):
+				com[i] = com[i] + point[i] * point[3]
+
+		for i in range(len(com)):
+			com[i] = com[i] / mass
+
+		return com
+
 	def test_insert(self):
 		# Tests insertion of points and their stored data
 
@@ -83,10 +97,12 @@ class testOctree(unittest.TestCase):
 
 		# Points with 0 to 3 negative coordinates, and edge case of center
 		pointRTF = [1, 1, 1, 10]
-		pointRBF = [1, -1, 1, 10]
-		pointLTR = [-1, 1, -1, 10]
-		pointLBR = [-1, -1, -1, 10]
-		pointCenter = [0, 0, 0, 10]
+		pointRBF = [1, -1, 1, 12.5]
+		pointLTR = [-1, 1, -1, 1]
+		pointLBR = [-1, -1, -1, 32.7]
+		pointCenter = [0, 0, 0, 11.3]
+		com1 = self.findCom([pointRTF, pointRBF, pointLTR, pointCenter])
+		com2 = self.findCom([pointRTF, pointRBF, pointLTR, pointLBR, pointCenter])
 
 		# Test insertion with 0 to 2 negative coords, and edge case of center
 		# 3 negative coords not tested  here
@@ -96,11 +112,17 @@ class testOctree(unittest.TestCase):
 		newTree.insert(pointLTR)
 		newTree.insert(pointCenter)
 
-		# Test values
+		# Test position of stored points in octree
 		self.assertEqual(newTree.octants[0], [pointRTF])
 		self.assertEqual(newTree.octants[2], [pointRBF])
 		self.assertEqual(newTree.octants[5], [pointLTR])
 		self.assertEqual(newTree.octants[7], [pointCenter])
+
+		# Test mass and com values
+		self.assertAlmostEqual(newTree.mass, 34.8)
+		self.assertAlmostEqual(newTree.com[0], com1[0])
+		self.assertAlmostEqual(newTree.com[1], com1[1])
+		self.assertAlmostEqual(newTree.com[2], com1[2])
 
 		#  Initialise tree with capacity 10
 		newTree = self.emptyTree(capacity=10)
@@ -112,11 +134,17 @@ class testOctree(unittest.TestCase):
 		newTree.insert(pointLBR)
 		newTree.insert(pointCenter)
 
-		# Test values
+		# Test position of stored points in octree
 		self.assertEqual(newTree.octants[0], [pointRTF])
 		self.assertEqual(newTree.octants[2], [pointRBF])
 		self.assertEqual(newTree.octants[5], [pointLTR])
 		self.assertEqual(newTree.octants[7], [pointLBR, pointCenter])
+
+		# Test mass and com values
+		self.assertAlmostEqual(newTree.mass, 67.5)
+		self.assertAlmostEqual(newTree.com[0], com2[0])
+		self.assertAlmostEqual(newTree.com[1], com2[1])
+		self.assertAlmostEqual(newTree.com[2], com2[2])
 
 	def partiallyFilledTree(self, capacity=2):
 		# Returns tree with some points already inserted, but no partitions
@@ -149,33 +177,64 @@ class testOctree(unittest.TestCase):
 		pointRTF = [1, 1, 1, 10]
 		pointLBR = [-1, -1, -1, 10]
 		pointCenter = [0, 0, 0, 10]
+		pointLBR = [-1, -1, -1, 10]
 
 		# Points to induce partitions
 		onePartitionRTF = [6, 6, 6, 10]
 		twoPartitionLBR = [-4, -4, -4, 10]
+		com1 = self.findCom([onePartitionRTF, pointRTF])
+		com2 = self.findCom([pointCenter, twoPartitionLBR])
+		com3 = self.findCom([pointCenter, twoPartitionLBR, pointLBR])
 
 		newTree.insert(onePartitionRTF)
 		newTree.insert(twoPartitionLBR)
 
 		# Single partition tests
+		# Test position of stored points in octree
 		self.assertEqual(newTree.octants[0].octants[0], [onePartitionRTF])
 		self.assertEqual(newTree.octants[0].octants[7], [pointRTF])
+
+		# Test depth
 		self.assertEqual(newTree.octants[0].depth, 1)
 
+		# Test mass
+		self.assertAlmostEqual(newTree.mass, 60)
+		self.assertAlmostEqual(newTree.octants[0].mass, 20)
+		self.assertAlmostEqual(newTree.octants[0].com[0], com1[0])
+		self.assertAlmostEqual(newTree.octants[0].com[1], com1[1])
+		self.assertAlmostEqual(newTree.octants[0].com[2], com1[2])
+
 		# Double partition tests
+		# Test position of stored points in octree
 		self.assertEqual(newTree.octants[7].octants[0].octants[0], [pointCenter])
 		self.assertEqual(newTree.octants[7].octants[0].octants[7], [twoPartitionLBR])
+
+		# Test mass and com
+		self.assertAlmostEqual(newTree.octants[7].mass, 20)
+		self.assertAlmostEqual(newTree.octants[7].octants[0].mass, 20)
+		self.assertAlmostEqual(newTree.octants[7].octants[0].com[0], com2[0])
+		self.assertAlmostEqual(newTree.octants[7].octants[0].com[1], com2[1])
+		self.assertAlmostEqual(newTree.octants[7].octants[0].com[2], com2[2])
 
 		# Test with capacity 2, only testing double partition here
 		newTree = self.partiallyFilledTree(capacity=2)
 		newTree.insert(twoPartitionLBR)
 
 		# Double partition tests
+		# Test position of stored points in octree
 		self.assertEqual(
 			newTree.octants[7].octants[0].octants[0], [pointLBR, pointCenter]
 		)
 		self.assertEqual(newTree.octants[7].octants[0].octants[7], [twoPartitionLBR])
+
+		# Test depth
 		self.assertEqual(newTree.octants[7].octants[0].depth, 2)
+
+		# Test mass and com
+		self.assertAlmostEqual(newTree.octants[7].octants[0].mass, 30)
+		self.assertAlmostEqual(newTree.octants[7].octants[0].com[0], com3[0])
+		self.assertAlmostEqual(newTree.octants[7].octants[0].com[1], com3[1])
+		self.assertAlmostEqual(newTree.octants[7].octants[0].com[2], com3[2])
 
 
 if __name__ == '__main__':
