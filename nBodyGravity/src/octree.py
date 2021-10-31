@@ -32,6 +32,8 @@ class octree:
 		self.contained = [0] * 8
 
 	def insert(self, point):
+		# Inserts points to octants
+
 		# Find octant to insert point, check octant for capacity
 		octantIndex = self.findOctant(point)
 
@@ -46,15 +48,12 @@ class octree:
 			# Octant already partitioned, insert to octree in octant
 			self.octants[octantIndex].insert(point)
 
-		newMass = self.mass + point[3]
-		for i in range(len(self.com)):
-			self.com[i] = (self.com[i] * self.mass + point[i] * point[3]) / newMass
-		self.mass = newMass
-
 		# Always increment contained as it is required for above checks
 		self.contained[octantIndex] += 1
 
 	def partition(self, octantIndex):
+		# Partitions octants if over capacity after insertion
+
 		# Copy points out of octants list
 		points = self.octants[octantIndex]
 
@@ -74,6 +73,9 @@ class octree:
 			self.octants[octantIndex].insert(point)
 
 	def findPartitionCenterWidth(self, octantIndex):
+		# Finds the center and width of a new child octant based on index
+		# and current octant center and width
+
 		newWidth = self.width / 2
 		newCenter = self.center.copy()
 
@@ -97,6 +99,9 @@ class octree:
 		return newCenter, newWidth
 
 	def findOctant(self, point):
+		# Given coordinates and current octree center and width,
+		# finds octant point belongs to
+
 		index = 0
 
 		# Refer to description above about axis conventions
@@ -109,6 +114,30 @@ class octree:
 
 		return index
 
+	def computeMassDist(self):
+		# Computes mass and com for entire tree
+
+		mass = 0
+		com = [0, 0, 0]
+		for i in range(8):
+			if self.contained[i] <= self.capacity:
+				# Octant has only points, add thir masses and compute com
+				for point in self.octants[i]:
+					mass += point[3]
+					for j in range(3):
+						com[j] += point[j] * point[3]
+			else:
+				# Octant contains an octree instead, query them for mass and com
+				self.octants[i].computeMassDist()
+				mass += self.octants[i].mass
+				for j in range(3):
+					com[j] += self.octants[i].com[j] * self.octants[i].mass
+
+		for i in range(3):
+			com[i] = com[i] / mass
+
+		self.mass = mass
+		self.com = com.copy()
 
 def insertionBenchmark(n, coordinateRange, massRange, capacity):
 	# Performs insertion of points to a new octree 5 times and reports time taken
@@ -143,6 +172,8 @@ def pointsInsertion(center, width, capacity, points):
 
 	for i in range(points.shape[0]):
 		newTree.insert(points[i])
+
+	newTree.computeMassDist()
 
 
 if __name__ == '__main__':
