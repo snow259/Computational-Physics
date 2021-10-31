@@ -4,20 +4,10 @@ from octree import octree
 
 class testOctree(unittest.TestCase):
 
-	def emptyTree(self, center=[0, 0, 0], width=10, capacity=10):
-		# Returns an empty tree
-		newTree = octree(center, width, capacity)
+	def verificationPoints(self):
+		# Returns dict containing all test points used in the unittests
+		# Initially named testPoints but that gets counted as a test function
 
-		return newTree
-
-	def test_findOctant(self):
-		# Testing the function that determines the octant a point belongs to
-
-		# Initialise tree
-		center = [0, 0, 0]
-		newTree = self.emptyTree()
-
-		# Test Points
 		# Right handed axis, x right, y upwards, z towards
 		# 0: +++ : right, top, front
 		# 1: ++- : right, top, rear
@@ -27,26 +17,66 @@ class testOctree(unittest.TestCase):
 		# 5: -+- : left, top, rear
 		# 6: --+ : left, bot, front
 		# 7: --- : left, bot, rear
+		points = {
+			'pointRTF': [1, 1, 1, 10],
+			'pointRTR': [1, 1, -1, 10],
+			'pointRBF': [1, -1, 1, 10],
+			'pointRBR': [1, -1, -1, 10],
+			'pointLTF': [-1, 1, 1, 10],
+			'pointLTR': [-1, 1, -1, 10],
+			'pointLBF': [-1, -1, 1, 10],
+			'pointLBR': [-1, -1, -1, 10],
+			'pointCenter': [0, 0, 0, 10],
+			'onePartitionRTF': [6, 6, 6, 10],
+			'twoPartitionLBR': [-4, -4, -4, 10]
+		}
+
+		return points
+
+	def emptyTree(self, center=[0, 0, 0], width=10, capacity=10):
+		# Returns an empty tree
+		newTree = octree(center, width, capacity)
+
+		return newTree
+
+	def partiallyFilledTree(self, capacity=2):
+		# Returns tree with some points already inserted, but no partitions
+		newTree = self.emptyTree(capacity=capacity)
+
+		# Points with 0 to 3 negative coordinates, and edge case of center
 		pointRTF = [1, 1, 1, 10]
-		pointRTR = [1, 1, -1, 10]
 		pointRBF = [1, -1, 1, 10]
-		pointRBR = [1, -1, -1, 10]
-		pointLTF = [-1, 1, 1, 10]
 		pointLTR = [-1, 1, -1, 10]
-		pointLBF = [-1, -1, 1, 10]
 		pointLBR = [-1, -1, -1, 10]
-		pointCenter = center
+		pointCenter = [0, 0, 0, 10]
+
+		newTree.insert(pointRTF)
+		newTree.insert(pointRBF)
+		newTree.insert(pointLTR)
+		if capacity > 1:
+			# Both this point and pointCenter will be inserted to octant 7
+			newTree.insert(pointLBR)
+		newTree.insert(pointCenter)
+
+		return newTree
+
+	def test_findOctant(self):
+		# Testing the function that determines the octant a point belongs to
+
+		# Initialise tree and points
+		newTree = self.emptyTree()
+		points = self.verificationPoints()
 
 		# Testing with full octant coverage, and an edge case of point in center
-		self.assertEqual(newTree.findOctant(pointRTF), 0)
-		self.assertEqual(newTree.findOctant(pointRTR), 1)
-		self.assertEqual(newTree.findOctant(pointRBF), 2)
-		self.assertEqual(newTree.findOctant(pointRBR), 3)
-		self.assertEqual(newTree.findOctant(pointLTF), 4)
-		self.assertEqual(newTree.findOctant(pointLTR), 5)
-		self.assertEqual(newTree.findOctant(pointLBF), 6)
-		self.assertEqual(newTree.findOctant(pointLBR), 7)
-		self.assertEqual(newTree.findOctant(pointCenter), 7)
+		self.assertEqual(newTree.findOctant(points['pointRTF']), 0)
+		self.assertEqual(newTree.findOctant(points['pointRTR']), 1)
+		self.assertEqual(newTree.findOctant(points['pointRBF']), 2)
+		self.assertEqual(newTree.findOctant(points['pointRBR']), 3)
+		self.assertEqual(newTree.findOctant(points['pointLTF']), 4)
+		self.assertEqual(newTree.findOctant(points['pointLTR']), 5)
+		self.assertEqual(newTree.findOctant(points['pointLBF']), 6)
+		self.assertEqual(newTree.findOctant(points['pointLBR']), 7)
+		self.assertEqual(newTree.findOctant(points['pointCenter']), 7)
 
 	def test_findPartitionCenterWidth(self):
 		# Testing function that finds the position and width of new octree
@@ -75,6 +105,82 @@ class testOctree(unittest.TestCase):
 		self.assertEqual(newTree.findPartitionCenterWidth(6), index6Result)
 		self.assertEqual(newTree.findPartitionCenterWidth(7), index7Result)
 
+	def test_insert(self):
+		# Tests insertion of points and their stored data
+
+		# Initialise tree with capacity 1
+		newTree = self.emptyTree(capacity=1)
+		points = self.verificationPoints()
+
+		# Test insertion with 0 to 2 negative coords, and edge case of center
+		# 3 negative coords not tested  here
+		# Capacity is 1, and both it and center will go to octantIndex 7
+		newTree.insert(points['pointRTF'])
+		newTree.insert(points['pointRBF'])
+		newTree.insert(points['pointLTR'])
+		newTree.insert(points['pointCenter'])
+
+		# Test position of stored points in octree
+		self.assertEqual(newTree.octants[0], [points['pointRTF']])
+		self.assertEqual(newTree.octants[2], [points['pointRBF']])
+		self.assertEqual(newTree.octants[5], [points['pointLTR']])
+		self.assertEqual(newTree.octants[7], [points['pointCenter']])
+
+		#  Initialise tree with capacity 10
+		newTree = self.emptyTree(capacity=10)
+
+		# Insert all points as there is capacity
+		newTree.insert(points['pointRTF'])
+		newTree.insert(points['pointRBF'])
+		newTree.insert(points['pointLTR'])
+		newTree.insert(points['pointLBR'])
+		newTree.insert(points['pointCenter'])
+
+		# Test position of stored points in octree
+		self.assertEqual(newTree.octants[0], [points['pointRTF']])
+		self.assertEqual(newTree.octants[2], [points['pointRBF']])
+		self.assertEqual(newTree.octants[5], [points['pointLTR']])
+		self.assertEqual(newTree.octants[7], [points['pointLBR'], points['pointCenter']])
+
+	def test_partition(self):
+		# Tests partitioning of octants by inducing single and double partitions
+		# Compares values of depth, coordinates, and mass
+
+		# Test with capacity 1
+		newTree = self.partiallyFilledTree(capacity=1)
+		points = self.verificationPoints()
+
+		# Insert points to induce partitions
+		newTree.insert(points['onePartitionRTF'])
+		newTree.insert(points['twoPartitionLBR'])
+
+		# Single partition tests
+		# Test position of stored points in octree
+		self.assertEqual(newTree.octants[0].octants[0], [points['onePartitionRTF']])
+		self.assertEqual(newTree.octants[0].octants[7], [points['pointRTF']])
+
+		# Test depth
+		self.assertEqual(newTree.octants[0].depth, 1)
+
+		# Double partition tests
+		# Test position of stored points in octree
+		self.assertEqual(newTree.octants[7].octants[0].octants[0], [points['pointCenter']])
+		self.assertEqual(newTree.octants[7].octants[0].octants[7], [points['twoPartitionLBR']])
+
+		# Test with capacity 2, only testing double partition here
+		newTree = self.partiallyFilledTree(capacity=2)
+		newTree.insert(points['twoPartitionLBR'])
+
+		# Double partition tests
+		# Test position of stored points in octree
+		self.assertEqual(
+			newTree.octants[7].octants[0].octants[0], [points['pointLBR'], points['pointCenter']]
+		)
+		self.assertEqual(newTree.octants[7].octants[0].octants[7], [points['twoPartitionLBR']])
+
+		# Test depth
+		self.assertEqual(newTree.octants[7].octants[0].depth, 2)
+
 	def findCom(self, points):
 		# Finds the center of mass of a given list of points
 		com = [0, 0, 0]
@@ -89,145 +195,36 @@ class testOctree(unittest.TestCase):
 
 		return com
 
-	def test_insert(self):
-		# Tests insertion of points and their stored data
-
-		# Initialise tree with capacity 1
-		newTree = self.emptyTree(capacity=1)
-
-		# Points with 0 to 3 negative coordinates, and edge case of center
-		pointRTF = [1, 1, 1, 10]
-		pointRBF = [1, -1, 1, 10]
-		pointLTR = [-1, 1, -1, 10]
-		pointLBR = [-1, -1, -1, 10]
-		pointCenter = [0, 0, 0, 10]
-		com1 = self.findCom([pointRTF, pointRBF, pointLTR, pointCenter])
-		com2 = self.findCom([pointRTF, pointRBF, pointLTR, pointLBR, pointCenter])
-
-		# Test insertion with 0 to 2 negative coords, and edge case of center
-		# 3 negative coords not tested  here
-		# Capacity is 1, and both it and center will go to octantIndex 7
-		newTree.insert(pointRTF)
-		newTree.insert(pointRBF)
-		newTree.insert(pointLTR)
-		newTree.insert(pointCenter)
-
-		# Test position of stored points in octree
-		self.assertEqual(newTree.octants[0], [pointRTF])
-		self.assertEqual(newTree.octants[2], [pointRBF])
-		self.assertEqual(newTree.octants[5], [pointLTR])
-		self.assertEqual(newTree.octants[7], [pointCenter])
-
-		#  Initialise tree with capacity 10
-		newTree = self.emptyTree(capacity=10)
-
-		# Insert all points as there is capacity
-		newTree.insert(pointRTF)
-		newTree.insert(pointRBF)
-		newTree.insert(pointLTR)
-		newTree.insert(pointLBR)
-		newTree.insert(pointCenter)
-
-		# Test position of stored points in octree
-		self.assertEqual(newTree.octants[0], [pointRTF])
-		self.assertEqual(newTree.octants[2], [pointRBF])
-		self.assertEqual(newTree.octants[5], [pointLTR])
-		self.assertEqual(newTree.octants[7], [pointLBR, pointCenter])
-
-	def partiallyFilledTree(self, capacity=2):
-		# Returns tree with some points already inserted, but no partitions
-		newTree = self.emptyTree(capacity=capacity)
-
-		# Points with 0 to 3 negative coordinates, and edge case of center
-		pointRTF = [1, 1, 1, 10]
-		pointRBF = [1, -1, 1, 10]
-		pointLTR = [-1, 1, -1, 10]
-		pointLBR = [-1, -1, -1, 10]
-		pointCenter = [0, 0, 0, 10]
-
-		newTree.insert(pointRTF)
-		newTree.insert(pointRBF)
-		newTree.insert(pointLTR)
-		if capacity > 1:
-			# Both this point and pointCenter will be inserted to octant 7
-			newTree.insert(pointLBR)
-		newTree.insert(pointCenter)
-
-		return newTree
-
-	def test_partition(self):
-		# Tests partitioning of octants by inducing single and double partitions
-		# Compares values of depth, coordinates, and mass
-
-		# Test with capacity 1
-		newTree = self.partiallyFilledTree(capacity=1)
-
-		pointRTF = [1, 1, 1, 10]
-		pointLBR = [-1, -1, -1, 10]
-		pointCenter = [0, 0, 0, 10]
-		pointLBR = [-1, -1, -1, 10]
-
-		# Points to induce partitions
-		onePartitionRTF = [6, 6, 6, 10]
-		twoPartitionLBR = [-4, -4, -4, 10]
-
-		newTree.insert(onePartitionRTF)
-		newTree.insert(twoPartitionLBR)
-
-		# Single partition tests
-		# Test position of stored points in octree
-		self.assertEqual(newTree.octants[0].octants[0], [onePartitionRTF])
-		self.assertEqual(newTree.octants[0].octants[7], [pointRTF])
-
-		# Test depth
-		self.assertEqual(newTree.octants[0].depth, 1)
-
-		# Double partition tests
-		# Test position of stored points in octree
-		self.assertEqual(newTree.octants[7].octants[0].octants[0], [pointCenter])
-		self.assertEqual(newTree.octants[7].octants[0].octants[7], [twoPartitionLBR])
-
-		# Test with capacity 2, only testing double partition here
-		newTree = self.partiallyFilledTree(capacity=2)
-		newTree.insert(twoPartitionLBR)
-
-		# Double partition tests
-		# Test position of stored points in octree
-		self.assertEqual(
-			newTree.octants[7].octants[0].octants[0], [pointLBR, pointCenter]
-		)
-		self.assertEqual(newTree.octants[7].octants[0].octants[7], [twoPartitionLBR])
-
-		# Test depth
-		self.assertEqual(newTree.octants[7].octants[0].depth, 2)
-
 	def test_computeMassDist(self):
-		pointRTF = [1, 1, 1, 10]
-		pointRBF = [1, -1, 1, 10]
-		pointLTR = [-1, 1, -1, 10]
-		pointLBR = [-1, -1, -1, 10]
-		pointCenter = [0, 0, 0, 10]
+		# Tests the compuation of mass and com
 
-		# Points to induce partitions
-		onePartitionRTF = [6, 6, 6, 10]
-		twoPartitionLBR = [-4, -4, -4, 10]
+		points = self.verificationPoints()
 
 		# Center of masses for the three com tests in order of testing
-		com1 = self.findCom([onePartitionRTF, pointRTF])
-		com2 = self.findCom([pointCenter, twoPartitionLBR, pointLBR])
+		# Center of mass for single partition test
+		com1 = self.findCom([
+			points['onePartitionRTF'],
+			points['pointRTF']
+		])
+		# Center of mass for double partition test
+		com2 = self.findCom([
+			points['pointCenter'],
+			points['twoPartitionLBR'],
+			points['pointLBR']
+		])
+		# Center of mass of all points in double partition test
 		com2Total = self.findCom([
-			pointRTF,
-			pointRBF,
-			pointLTR,
-			pointLBR,
-			pointCenter,
-			twoPartitionLBR
+			points['pointRTF'],
+			points['pointRBF'],
+			points['pointLTR'],
+			points['pointLBR'],
+			points['pointCenter'],
+			points['twoPartitionLBR']
 		])
 
 		# Test with capacity 1, testing only single partition here
 		newTree = self.partiallyFilledTree(capacity=1)
-
-		newTree.insert(onePartitionRTF)
+		newTree.insert(points['onePartitionRTF'])
 		newTree.computeMassDist()
 
 		# Test mass
@@ -239,7 +236,7 @@ class testOctree(unittest.TestCase):
 
 		# Test with capacity 2, only testing double partition here
 		newTree = self.partiallyFilledTree(capacity=2)
-		newTree.insert(twoPartitionLBR)
+		newTree.insert(points['twoPartitionLBR'])
 		newTree.computeMassDist()
 
 		# Test mass and com of left bot rear octant
