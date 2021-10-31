@@ -28,7 +28,8 @@ class testOctree(unittest.TestCase):
 			'pointLBR': [-1, -1, -1, 10],
 			'pointCenter': [0, 0, 0, 10],
 			'onePartitionRTF': [6, 6, 6, 10],
-			'twoPartitionLBR': [-4, -4, -4, 10]
+			'twoPartitionLBR': [-4, -4, -4, 10],
+			'pointCom': [0, 0, 0]
 		}
 
 		return points
@@ -42,21 +43,16 @@ class testOctree(unittest.TestCase):
 	def partiallyFilledTree(self, capacity=2):
 		# Returns tree with some points already inserted, but no partitions
 		newTree = self.emptyTree(capacity=capacity)
+		points = self.verificationPoints()
 
 		# Points with 0 to 3 negative coordinates, and edge case of center
-		pointRTF = [1, 1, 1, 10]
-		pointRBF = [1, -1, 1, 10]
-		pointLTR = [-1, 1, -1, 10]
-		pointLBR = [-1, -1, -1, 10]
-		pointCenter = [0, 0, 0, 10]
-
-		newTree.insert(pointRTF)
-		newTree.insert(pointRBF)
-		newTree.insert(pointLTR)
+		newTree.insert(points['pointRTF'])
+		newTree.insert(points['pointRBF'])
+		newTree.insert(points['pointLTR'])
 		if capacity > 1:
 			# Both this point and pointCenter will be inserted to octant 7
-			newTree.insert(pointLBR)
-		newTree.insert(pointCenter)
+			newTree.insert(points['pointLBR'])
+		newTree.insert(points['pointCenter'])
 
 		return newTree
 
@@ -228,8 +224,8 @@ class testOctree(unittest.TestCase):
 		newTree.computeMassDist()
 
 		# Test mass
-		self.assertAlmostEqual(newTree.mass, 50)
-		self.assertAlmostEqual(newTree.octants[0].mass, 20)
+		self.assertAlmostEqual(newTree.com[3], 50)
+		self.assertAlmostEqual(newTree.octants[0].com[3], 20)
 		self.assertAlmostEqual(newTree.octants[0].com[0], com1[0])
 		self.assertAlmostEqual(newTree.octants[0].com[1], com1[1])
 		self.assertAlmostEqual(newTree.octants[0].com[2], com1[2])
@@ -243,15 +239,27 @@ class testOctree(unittest.TestCase):
 		# Initially has three points, so it is paritioned once
 		# First parititon has three points so it is partitioned a second time
 		# Second partition has 1 point in an octant, and 2 in another
-		self.assertAlmostEqual(newTree.mass, 60)
+		self.assertAlmostEqual(newTree.com[3], 60)
 		self.assertAlmostEqual(newTree.com[0], com2Total[0])
 		self.assertAlmostEqual(newTree.com[1], com2Total[1])
 		self.assertAlmostEqual(newTree.com[2], com2Total[2])
-		self.assertAlmostEqual(newTree.octants[7].mass, 30)
-		self.assertAlmostEqual(newTree.octants[7].octants[0].mass, 30)
+		self.assertAlmostEqual(newTree.octants[7].com[3], 30)
+		self.assertAlmostEqual(newTree.octants[7].octants[0].com[3], 30)
 		self.assertAlmostEqual(newTree.octants[7].octants[0].com[0], com2[0])
 		self.assertAlmostEqual(newTree.octants[7].octants[0].com[1], com2[1])
 		self.assertAlmostEqual(newTree.octants[7].octants[0].com[2], com2[2])
+
+	def test_distance(self):
+		# Tests return value of distance function
+
+		# Tree properties or contained points are not required for this function
+		newTree = self.emptyTree()
+		points = self.verificationPoints()
+
+		self.assertAlmostEqual(newTree.distance(points['onePartitionRTF'], points['pointCenter']), 6 * 3**0.5)
+		self.assertAlmostEqual(newTree.distance(points['pointLBR'], points['pointCom']), 1 * 3**0.5)
+		self.assertAlmostEqual(newTree.distance(points['pointRTF'], points['pointRTR']), 2)
+		self.assertAlmostEqual(newTree.distance(points['pointLBR'], points['pointRTF']), 2 * 3**0.5)
 
 
 if __name__ == '__main__':

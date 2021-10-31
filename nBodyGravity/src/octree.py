@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class octree:
 
 	def __init__(self, center, width, capacity, depth=0, maxDepth=10):
@@ -7,10 +10,6 @@ class octree:
 
 		# Define capacity of each octant
 		self.capacity = capacity
-
-		# Mass contained in octant, and position of center of mass
-		self.mass = 0
-		self.com = center.copy()
 
 		# Node depth
 		self.maxDepth = 10
@@ -116,37 +115,72 @@ class octree:
 
 	def computeMassDist(self):
 		# Computes mass and com for entire tree
+		# Stores com and mass in a single array like, similar to points
 
-		mass = 0
-		com = [0, 0, 0]
+		# com = [0, 0, 0]
+		com = np.zeros(4)
 		for i in range(8):
 			if self.contained[i] <= self.capacity:
-				# Octant has only points, add thir masses and compute com
+				# Octant has only points, add their masses and compute com
 				for point in self.octants[i]:
-					mass += point[3]
+					com[3] += point[3]
 					for j in range(3):
 						com[j] += point[j] * point[3]
 			else:
 				# Octant contains an octree instead, query them for mass and com
 				self.octants[i].computeMassDist()
-				mass += self.octants[i].mass
+				com[3] += self.octants[i].com[3]
 				for j in range(3):
-					com[j] += self.octants[i].com[j] * self.octants[i].mass
+					com[j] += self.octants[i].com[j] * self.octants[i].com[3]
 
 		for i in range(3):
-			com[i] = com[i] / mass
+			com[i] = com[i] / com[3]
 
-		self.mass = mass
-		self.com = com.copy()
+		self.com = com
 
-def insertionBenchmark(n, coordinateRange, massRange, capacity):
+	def findContributingMasses(self, point, theta):
+		# Finds all masses that contribute force to point, for Barnes Hut algorithm
+
+		contributingMasses = list()
+		for i in range(8):
+			if self.contained[i] <= self.capacity:
+				# Octant contains only points
+				for point in self.octants[i]:
+					if point is not None:
+						contributingMasses.append(point)
+			else:
+				# Octant contains octree
+				com = self.octants[i].com.copy()
+				r = self.distance(point, self.octants[i].com)
+				d = self.octants[i].width * 2
+				if d / r < theta:
+					# Approximation acceptable
+					contributingMasses.append(com)
+				else:
+					# Approximation not acceptable, collect points from octant
+					contributingMasses.extend(self.octants[i].findContributingMasses(point, theta))
+
+		return contributingMasses
+
+	def distance(self, point1, point2):
+		# Returns distance between points
+
+		dist = 0
+		for i in range(3):
+			dist += (point2[i] - point1[i]) * (point2[i] - point1[i])
+
+		return dist**0.5
+
+
+def insertionBenchmark(n, coordinateRange, massRange, capacity, theta, runs):
 	# Performs insertion of points to a new octree 5 times and reports time taken
-	print(f'Benchmarking:	n: {n}	capacity: {capacity}')
+	print(f'\nBenchmarking:	n: {n}	capacity: {capacity}	theta: {theta}	runs: {runs}\n')
 
 	rng = np.random.default_rng()
-	timeResults = np.zeros(5)
+	treeBuildResults = np.zeros(runs)
+	searchContributorResults = np.zeros(runs)
 
-	for i in range(5):
+	for i in range(runs):
 		# Generates new points each time
 		positions = rng.integers(-coordinateRange, coordinateRange, (n, 3))
 		masses = rng.integers(1, massRange, (n, 1))
@@ -156,13 +190,21 @@ def insertionBenchmark(n, coordinateRange, massRange, capacity):
 
 		# Tests time taken for a single run of insertion
 		startTime = dt.datetime.now()
-		pointsInsertion(center, width, capacity, points)
+		newTree = pointsInsertion(center, width, capacity, points)
 		endTime = dt.datetime.now()
+		treeBuildResults[i] = (endTime - startTime).total_seconds()
 
-		timeResults[i] = (endTime - startTime).microseconds / 10**6
+		startTime = dt.datetime.now()
+		contributorSearch(newTree, theta, points)
+		endTime = dt.datetime.now()
+		searchContributorResults[i] = (endTime - startTime).total_seconds()
 
-	print(f'Seconds taken:	{timeResults.mean():.3f} ({timeResults.std():.3f})')
-	print(f'Total seconds taken:	{timeResults.sum():.3f}')
+	print('Building Tree:')
+	print(f'Seconds taken:	{treeBuildResults.mean():.3f} ({treeBuildResults.std():.3f})')
+	print(f'Total seconds taken:	{treeBuildResults.sum():.3f}\n')
+	print('Searching all contributing masses:')
+	print(f'Seconds taken:	{searchContributorResults.mean():.3f} ({searchContributorResults.std():.3f})')
+	print(f'Total seconds taken:	{searchContributorResults.sum():.3f}')
 
 
 def pointsInsertion(center, width, capacity, points):
@@ -170,18 +212,28 @@ def pointsInsertion(center, width, capacity, points):
 
 	newTree = octree(center, width, capacity)
 
+	# Insert points
 	for i in range(points.shape[0]):
 		newTree.insert(points[i])
 
+	# Mass distribution computation
 	newTree.computeMassDist()
+
+	return newTree
+
+
+def contributorSearch(newTree, theta, points):
+	for point in points:
+		_ = newTree.findContributingMasses(point, theta)
 
 
 if __name__ == '__main__':
-	import numpy as np
 	import datetime as dt
 
 	n = 10**4
 	coordinateRange = 10**5
 	massRange = 10**3
 	capacity = 1
-	insertionBenchmark(n, coordinateRange, massRange, capacity)
+	theta = 0.5
+	runs = 5
+	insertionBenchmark(n, coordinateRange, massRange, capacity, theta, runs)
