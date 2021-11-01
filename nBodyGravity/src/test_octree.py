@@ -29,12 +29,11 @@ class testOctree(unittest.TestCase):
 			'pointCenter': [0, 0, 0, 10],
 			'onePartitionRTF': [6, 6, 6, 10],
 			'twoPartitionLBR': [-4, -4, -4, 10],
-			'pointCom': [0, 0, 0]
 		}
 
 		return points
 
-	def emptyTree(self, center=[0, 0, 0], width=10, capacity=10):
+	def emptyTree(self, center=[0, 0, 0], width=10, capacity=2):
 		# Returns an empty tree
 		newTree = octree(center, width, capacity)
 
@@ -257,9 +256,56 @@ class testOctree(unittest.TestCase):
 		points = self.verificationPoints()
 
 		self.assertAlmostEqual(newTree.distance(points['onePartitionRTF'], points['pointCenter']), 6 * 3**0.5)
-		self.assertAlmostEqual(newTree.distance(points['pointLBR'], points['pointCom']), 1 * 3**0.5)
 		self.assertAlmostEqual(newTree.distance(points['pointRTF'], points['pointRTR']), 2)
 		self.assertAlmostEqual(newTree.distance(points['pointLBR'], points['pointRTF']), 2 * 3**0.5)
+
+	def test_findContributingMasses(self):
+		# Tests masses returned by search
+
+		newTree = self.partiallyFilledTree()
+		points = self.verificationPoints()
+
+		newTree.insert(points['onePartitionRTF'])
+		newTree.insert(points['twoPartitionLBR'])
+		newTree.computeMassDist()
+
+		# Using theta of 0, all points should be returned
+		contributingMasses = newTree.findContributingMasses(points['onePartitionRTF'], 0)
+
+		self.assertEqual(len(contributingMasses), 7)
+		self.assertTrue(points['onePartitionRTF'] in contributingMasses)
+		self.assertTrue(points['twoPartitionLBR'] in contributingMasses)
+		self.assertTrue(points['pointRTF'] in contributingMasses)
+		self.assertTrue(points['pointRBF'] in contributingMasses)
+		self.assertTrue(points['pointLTR'] in contributingMasses)
+		self.assertTrue(points['pointLBR'] in contributingMasses)
+		self.assertTrue(points['pointCenter'] in contributingMasses)
+
+		contributingMasses = newTree.findContributingMasses(points['onePartitionRTF'], 2)
+		com = self.findCom([
+			points['pointLBR'],
+			points['pointCenter'],
+			points['twoPartitionLBR']
+		])
+
+		self.assertEqual(len(contributingMasses), 5)
+		self.assertTrue(points['onePartitionRTF'] in contributingMasses)
+		self.assertTrue(points['pointRTF'] in contributingMasses)
+		self.assertTrue(points['pointRBF'] in contributingMasses)
+		self.assertTrue(points['pointLTR'] in contributingMasses)
+
+		for mass in contributingMasses:
+			try:
+				# Com is numpy array, other points here are lists
+				mass.shape
+			except:
+				# Mass is a list, ignore
+				pass
+			else:
+				self.assertAlmostEqual(mass[0], com[0])
+				self.assertAlmostEqual(mass[1], com[1])
+				self.assertAlmostEqual(mass[2], com[2])
+				self.assertAlmostEqual(mass[3], 30)
 
 
 if __name__ == '__main__':
