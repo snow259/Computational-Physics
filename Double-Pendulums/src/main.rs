@@ -2,17 +2,17 @@ use macroquad::prelude::*;
 
 struct Pendulum {
     // mass in kg
-    bob1_mass: usize,
-    bob2_mass: usize,
+    bob1_mass: f64,
+    bob2_mass: f64,
     // length in m
-    arm1_length: usize,
-    arm2_length: usize,
+    arm1_length: f64,
+    arm2_length: f64,
     // angular position in rad, +ve is counter-clockwise
-    arm1_angular_position: usize,
-    arm2_angular_position: usize,
+    arm1_angular_position: f64,
+    arm2_angular_position: f64,
     // angular velocity in rad/s, +vs is counter-clockwise
-    arm1_angular_velocity: usize,
-    arm2_angular_velocity: usize,
+    arm1_angular_velocity: f64,
+    arm2_angular_velocity: f64,
 }
 
 #[macroquad::main("Double Pendulums")]
