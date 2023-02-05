@@ -1,27 +1,34 @@
-fn main() {
-    for n in 1..101 {
-        fizz_buzz(&n)
-    }
+use macroquad::prelude::*;
 }
 
-fn fizz_buzz(n: &i32) {
-    let mut divisibility = false;
-    let fizz_number = 3;
-    let buzz_number = 5;
+#[macroquad::main("Double Pendulums")]
+async fn main() {
+    let mut x = screen_width() / 2.0;
+    let mut y = screen_height() / 2.0;
+    let mut x_increment = 1.0;
+    let mut y_increment = 1.0;
+    let radius = 25.0;
+    loop {
+        x = x + x_increment;
+        y = y + y_increment;
 
-    if n % fizz_number == 0 {
-        print!("Fizz");
-        divisibility = true
+        if x + radius >= screen_width() {
+            x_increment = x_increment * -1.0;
+        }
+
+        if x - radius <= 0.0 {
+            x_increment = x_increment * -1.0;
+        }
+
+        if y + radius >= screen_height() {
+            y_increment = y_increment * -1.0;
+        }
+
+        if y - radius <= 0.0 {
+            y_increment = y_increment * -1.0;
+        }
+
+        draw_circle(x, y, radius, BLUE);
+        next_frame().await
     }
-
-    if n % buzz_number == 0 {
-        print!("Buzz");
-        divisibility = true
-    }
-
-    if divisibility == false {
-        print!("{}", n);
-    }
-
-    println!("")
 }
