@@ -1,15 +1,18 @@
 use macroquad::prelude::*;
 
+struct Coordinates(f32, f32);
+
 struct Pendulum {
     // mass in kg
     bob1_mass: f64,
     bob2_mass: f64,
+    // circular coordinates in f32 as macroquad draw functions use f32 inputs
     // length in m
-    arm1_length: f64,
-    arm2_length: f64,
+    arm1_length: f32,
+    arm2_length: f32,
     // angular position in rad, +ve is counter-clockwise
-    arm1_angular_position: f64,
-    arm2_angular_position: f64,
+    arm1_angular_position: f32,
+    arm2_angular_position: f32,
     // angular velocity in rad/s, +vs is counter-clockwise
     arm1_angular_velocity: f64,
     arm2_angular_velocity: f64,
