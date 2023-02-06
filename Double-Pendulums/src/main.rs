@@ -18,34 +18,25 @@ struct Pendulum {
     arm2_angular_velocity: f64,
 }
 
+impl Pendulum {
+    fn bob_coordinates(&self) -> [Coordinates; 2] {
+        let bob1_x = self.arm1_length * self.arm1_angular_position.sin();
+        let bob1_y = self.arm1_length * self.arm1_angular_position.cos();
+        let bob1_coordinates = Coordinates(bob1_x, bob1_y);
+
+        let bob2_x = bob1_x + self.arm2_length * self.arm2_angular_position.sin();
+        let bob2_y = bob1_y + self.arm2_length * self.arm2_angular_position.cos();
+        let bob2_coordinates = Coordinates(bob2_x, bob2_y);
+
+        return [bob1_coordinates, bob2_coordinates];
+    }
+}
+
 #[macroquad::main("Double Pendulums")]
 async fn main() {
-    let mut x = screen_width() / 2.0;
-    let mut y = screen_height() / 2.0;
-    let mut x_increment = 1.0;
-    let mut y_increment = 1.0;
-    let radius = 25.0;
+
     loop {
-        x = x + x_increment;
-        y = y + y_increment;
 
-        if x + radius >= screen_width() {
-            x_increment = x_increment * -1.0;
-        }
-
-        if x - radius <= 0.0 {
-            x_increment = x_increment * -1.0;
-        }
-
-        if y + radius >= screen_height() {
-            y_increment = y_increment * -1.0;
-        }
-
-        if y - radius <= 0.0 {
-            y_increment = y_increment * -1.0;
-        }
-
-        draw_circle(x, y, radius, BLUE);
         next_frame().await
     }
 }
