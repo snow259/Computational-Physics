@@ -4,10 +4,10 @@ use macroquad::prelude::*;
 struct Coordinates(f32, f32);
 
 struct Pendulum {
+    // Any variables using f32 are because macroquad draw functions use f32 inputs
     // mass in kg
-    bob1_mass: f64,
-    bob2_mass: f64,
-    // circular coordinates in f32 as macroquad draw functions use f32 inputs
+    bob1_mass: f32,
+    bob2_mass: f32,
     // length in m
     arm1_length: f32,
     arm2_length: f32,
@@ -33,6 +33,26 @@ impl Pendulum {
     }
 }
 
+fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
+    let mut rng = thread_rng();
+
+    let mut pendulums: Vec<Pendulum> = Vec::new();
+    for i in 0..n_pendulums {
+        pendulums.push(Pendulum {
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_length: 50.0,
+            arm2_length: 100.0,
+            arm1_angular_position: rng.gen_range(-6.28..6.28),
+            arm2_angular_position: rng.gen_range(-6.28..6.28),
+            arm1_angular_velocity: rng.gen_range(-3.14..3.14),
+            arm2_angular_velocity: rng.gen_range(-3.14..3.14),
+        });
+    }
+
+    return pendulums;
+}
+
 fn window_conf() -> Conf {
     Conf {
         // .to_owned() converts &str to String
@@ -46,42 +66,36 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut rng = thread_rng();
-    let radius = 5.0;
     let x_centre = screen_width() / 2.0;
     let y_centre = screen_height() / 2.0;
+    let radius = 5.0;
+    let thickness = 1.0;
 
-    let pendulum = Pendulum {
-        bob1_mass: 10.0,
-        bob2_mass: 10.0,
-        arm1_length: 50.0,
-        arm2_length: 50.0,
-        arm1_angular_position: rng.gen_range(-6.28..6.28),
-        arm2_angular_position: rng.gen_range(-6.28..6.28),
-        arm1_angular_velocity: 1.0,
-        arm2_angular_velocity: -0.5,
-    };
-
+    let pendulums = new_pendulums(5);
     loop {
-        draw_circle(x_centre, y_centre, radius, RED);
-        draw_pendulum(&pendulum, x_centre, y_centre);
+        clear_background(LIGHTGRAY);
+        for pendulum in &pendulums {
+            draw_pendulum(&pendulum, x_centre, y_centre, radius, thickness);
+        }
+        draw_circle(x_centre, y_centre, 2.0, BLACK);
 
         next_frame().await
     }
 }
 
-fn draw_pendulum(pendulum: &Pendulum, x_centre: f32, y_centre: f32) {
+fn draw_pendulum(pendulum: &Pendulum, x_centre: f32, y_centre: f32, radius: f32, thickness: f32) {
+    // Unpacking coordinates and adding offset to render relative to center of screen
     let Coordinates(x1, y1) = pendulum.bob_coordinates()[0];
     let Coordinates(x2, y2) = pendulum.bob_coordinates()[1];
-    let radius = 5.0;
-    let thickness = 0.5;
     let x1 = x1 + x_centre;
     let y1 = y1 + y_centre;
     let x2 = x2 + x_centre;
     let y2 = y2 + y_centre;
 
-    draw_circle(x1, y1, radius, BLUE);
-    draw_circle(x2, y2, radius, BLUE);
-    draw_line(x_centre, y_centre, x1, y1, thickness, BLUE);
-    draw_line(x1, y1, x2, y2, thickness, BLUE);
+    // Draw circles at bobs and connect center to bob1, and bob1 to bob2
+    draw_line(x_centre, y_centre, x1, y1, thickness, BLACK);
+    draw_line(x1, y1, x2, y2, thickness, BLACK);
+    draw_circle(x1, y1, radius, DARKGRAY);
+    draw_circle(x2, y2, radius, DARKGRAY);
+}
 }
