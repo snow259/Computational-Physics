@@ -81,7 +81,7 @@ fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
         pendulums.push(Pendulum {
             bob1_mass: 10.0,
             bob2_mass: 10.0,
-            arm1_length: 50.0,
+            arm1_length: 100.0,
             arm2_length: 100.0,
             arm1_angular_position: rng.gen_range(-6.28..6.28),
             arm2_angular_position: rng.gen_range(-6.28..6.28),
@@ -111,9 +111,16 @@ async fn main() {
     let radius = 5.0;
     let thickness = 1.0;
 
+    let mut show_ui = false;
+
     let pendulums = new_pendulums(5);
     loop {
         clear_background(LIGHTGRAY);
+
+        if show_ui == true {
+            draw_energy();
+        }
+
         for pendulum in &pendulums {
             draw_pendulum(&pendulum, x_centre, y_centre, radius, thickness);
         }
@@ -125,8 +132,9 @@ async fn main() {
 
 fn draw_pendulum(pendulum: &Pendulum, x_centre: f32, y_centre: f32, radius: f32, thickness: f32) {
     // Unpacking coordinates and adding offset to render relative to center of screen
-    let Coordinates(x1, y1) = pendulum.bob_coordinates()[0];
-    let Coordinates(x2, y2) = pendulum.bob_coordinates()[1];
+    let bob_coordinates = pendulum.bob_coordinates();
+    let Coordinates(x1, y1) = bob_coordinates[0];
+    let Coordinates(x2, y2) = bob_coordinates[1];
     let x1 = x1 + x_centre;
     let y1 = y1 + y_centre;
     let x2 = x2 + x_centre;
