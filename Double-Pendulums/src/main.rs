@@ -49,6 +49,28 @@ impl Pendulum {
 
         return [bob1_coordinates, bob2_coordinates];
     }
+
+    fn energy_kinetic(&self) -> f32 {
+        0.0
+    }
+
+    fn energy_potential(&self) -> f32 {
+        let height_pendulum_base = self.arm1_length + self.arm2_length;
+        let bob_coordinates = self.bob_coordinates();
+        let Coordinates(x1, y1) = bob_coordinates[0];
+        let Coordinates(x2, y2) = bob_coordinates[1];
+
+        let potential_energy = self.bob1_mass * (height_pendulum_base + y1)
+            + self.bob2_mass * (height_pendulum_base + y2);
+
+        return potential_energy * G;
+    }
+
+    fn energy_total(&self) -> f32 {
+        let total_energy = self.energy_potential() + self.energy_kinetic();
+
+        return total_energy;
+    }
 }
 
 fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
