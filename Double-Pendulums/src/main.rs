@@ -1,7 +1,25 @@
 use ::rand::prelude::*;
 use macroquad::prelude::*;
 
+const G: f32 = 9.81;
+
 struct Coordinates(f32, f32);
+
+struct Vector2 {
+    x: f32,
+    y: f32,
+}
+
+impl Vector2 {
+    fn dot(&self, v: Vector2) -> f32 {
+        return self.x * v.x + self.y * v.y;
+    }
+
+    fn cross(&self, v: Vector2) -> f32 {
+        // returns f32 despite being cross product as a two dimensional cross product has only one non zero term in three dimensions
+        return self.x * v.y - self.y * v.x;
+    }
+}
 
 struct Pendulum {
     // Any variables using f32 are because macroquad draw functions use f32 inputs
