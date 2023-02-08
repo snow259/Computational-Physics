@@ -6,7 +6,7 @@ fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
     let mut rng = thread_rng();
 
     let mut pendulums: Vec<Pendulum> = Vec::new();
-    for i in 0..n_pendulums {
+    for _i in 0..n_pendulums {
         pendulums.push(Pendulum {
             bob1_mass: 10.0,
             bob2_mass: 10.0,
@@ -60,14 +60,12 @@ async fn main() {
 }
 
 fn draw_pendulum(pendulum: &Pendulum, x_centre: f32, y_centre: f32, radius: f32, thickness: f32) {
-    // Unpacking coordinates and adding offset to render relative to center of screen
+    // Adding offset to render relative to center of screen
     let bob_coordinates = pendulum.bob_coordinates();
-    let Coordinates(x1, y1) = bob_coordinates[0];
-    let Coordinates(x2, y2) = bob_coordinates[1];
-    let x1 = x1 + x_centre;
-    let y1 = y1 + y_centre;
-    let x2 = x2 + x_centre;
-    let y2 = y2 + y_centre;
+    let x1 = bob_coordinates.bob1_x + x_centre;
+    let y1 = bob_coordinates.bob1_y + y_centre;
+    let x2 = bob_coordinates.bob2_x + x_centre;
+    let y2 = bob_coordinates.bob2_y + y_centre;
 
     // Draw circles at bobs and connect center to bob1, and bob1 to bob2
     draw_line(x_centre, y_centre, x1, y1, thickness, BLACK);

@@ -2,6 +2,13 @@ const G: f32 = 9.81;
 
 pub struct Coordinates(pub f32, pub f32);
 
+pub struct BobCoordinates {
+    pub bob1_x: f32,
+    pub bob1_y: f32,
+    pub bob2_x: f32,
+    pub bob2_y: f32,
+}
+
 pub struct Vector2 {
     pub x: f32,
     pub y: f32,
@@ -35,16 +42,19 @@ pub struct Pendulum {
 }
 
 impl Pendulum {
-    pub fn bob_coordinates(&self) -> [Coordinates; 2] {
+    pub fn bob_coordinates(&self) -> BobCoordinates {
         let bob1_x = self.arm1_length * self.arm1_angular_position.sin();
         let bob1_y = self.arm1_length * self.arm1_angular_position.cos();
-        let bob1_coordinates = Coordinates(bob1_x, bob1_y);
 
         let bob2_x = bob1_x + self.arm2_length * self.arm2_angular_position.sin();
         let bob2_y = bob1_y + self.arm2_length * self.arm2_angular_position.cos();
-        let bob2_coordinates = Coordinates(bob2_x, bob2_y);
 
-        return [bob1_coordinates, bob2_coordinates];
+        return BobCoordinates {
+            bob1_x,
+            bob1_y,
+            bob2_x,
+            bob2_y,
+        };
     }
 
     pub fn energy_kinetic(&self) -> f32 {
@@ -54,11 +64,9 @@ impl Pendulum {
     pub fn energy_potential(&self) -> f32 {
         let height_pendulum_base = self.arm1_length + self.arm2_length;
         let bob_coordinates = self.bob_coordinates();
-        let Coordinates(x1, y1) = bob_coordinates[0];
-        let Coordinates(x2, y2) = bob_coordinates[1];
 
-        let potential_energy = self.bob1_mass * (height_pendulum_base + y1)
-            + self.bob2_mass * (height_pendulum_base + y2);
+        let potential_energy = self.bob1_mass * (height_pendulum_base + bob_coordinates.bob1_y)
+            + self.bob2_mass * (height_pendulum_base + bob_coordinates.bob2_y);
 
         return potential_energy * G;
     }
