@@ -2,12 +2,22 @@ pub const G: f32 = 9.81;
 
 pub struct Coordinates(pub f32, pub f32);
 
+#[derive(Debug)]
 pub struct BobCoordinates {
     // Without BobCoordinates, there was repeated unpacking of coordinates across the code
     pub bob1_x: f32,
     pub bob1_y: f32,
     pub bob2_x: f32,
     pub bob2_y: f32,
+}
+
+impl PartialEq for BobCoordinates {
+    fn eq(&self, other: &Self) -> bool {
+        self.bob1_x == other.bob1_x
+            && self.bob1_y == other.bob1_y
+            && self.bob2_x == other.bob2_x
+            && self.bob2_y == other.bob2_y
+    }
 }
 
 pub struct Vector2 {
@@ -26,6 +36,7 @@ impl Vector2 {
     }
 }
 
+#[derive(Default)]
 pub struct Pendulum {
     // Any variables using f32 are because macroquad draw functions use f32 inputs
     // mass in kg
@@ -87,5 +98,43 @@ impl Pendulum {
         let total_energy = self.energy_potential() + self.energy_kinetic();
 
         return total_energy;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::f32::consts::PI;
+
+    use crate::Pendulum;
+
+    const FLOAT_TOLERANCE: f32 = 0.000001;
+
+    #[test]
+    fn test_bob_coordinates() {
+        let pendulum1 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            arm1_angular_position: 0.0,
+            arm2_angular_position: 0.0,
+            ..Default::default()
+        };
+
+        let pendulum2 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            arm1_angular_position: 1.5 * PI,
+            arm2_angular_position: 1.5 * PI,
+            ..Default::default()
+        };
+
+        assert_eq!(pendulum1.bob_coordinates().bob1_x, 10.0);
+        assert_eq!(pendulum1.bob_coordinates().bob1_y, 0.0);
+        assert_eq!(pendulum1.bob_coordinates().bob2_x, 20.0);
+        assert_eq!(pendulum1.bob_coordinates().bob2_y, 0.0);
+
+        assert!((pendulum2.bob_coordinates().bob1_x - 0.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum2.bob_coordinates().bob1_y - (-10.0)).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum2.bob_coordinates().bob2_x - 0.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum2.bob_coordinates().bob2_y - (-20.0)).abs() < FLOAT_TOLERANCE);
     }
 }
