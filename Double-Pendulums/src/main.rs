@@ -40,7 +40,7 @@ async fn main() {
     let radius = 5.0;
     let thickness = 1.0;
 
-    let mut show_ui = false;
+    let mut show_ui = true;
 
     let pendulums = new_pendulums(5);
     loop {
@@ -48,6 +48,10 @@ async fn main() {
 
         if show_ui == true {
             draw_energy(&pendulums);
+        }
+
+        if is_key_pressed(KeyCode::F2) {
+            show_ui = toggle_ui(&show_ui);
         }
 
         for pendulum in &pendulums {
@@ -107,4 +111,12 @@ fn draw_energy(pendulums: &Vec<double_pendulums::Pendulum>) {
         20.0,
         BLACK,
     );
+}
+
+fn toggle_ui(show_ui: &bool) -> bool {
+    if show_ui == &true {
+        return false;
+    } else {
+        return true;
+    }
 }
