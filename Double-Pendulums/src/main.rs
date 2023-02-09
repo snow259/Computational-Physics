@@ -66,10 +66,10 @@ async fn main() {
 fn draw_pendulum(pendulum: &Pendulum, x_centre: f32, y_centre: f32, radius: f32, thickness: f32) {
     // Adding offset to render relative to center of screen
     let bob_coordinates = pendulum.bob_coordinates();
-    let x1 = bob_coordinates.bob1_x + x_centre;
-    let y1 = bob_coordinates.bob1_y + y_centre;
-    let x2 = bob_coordinates.bob2_x + x_centre;
-    let y2 = bob_coordinates.bob2_y + y_centre;
+    let x1 = x_centre - bob_coordinates.bob1_x as f32;
+    let y1 = y_centre - bob_coordinates.bob1_y as f32;
+    let x2 = x_centre - bob_coordinates.bob2_x as f32;
+    let y2 = y_centre - bob_coordinates.bob2_y as f32;
 
     // Draw circles at bobs and connect center to bob1, and bob1 to bob2
     draw_line(x_centre, y_centre, x1, y1, thickness, BLACK);

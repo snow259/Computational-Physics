@@ -5,10 +5,10 @@ pub struct Coordinates(pub f32, pub f32);
 #[derive(Debug)]
 pub struct BobCoordinates {
     // Without BobCoordinates, there was repeated unpacking of coordinates across the code
-    pub bob1_x: f32,
-    pub bob1_y: f32,
-    pub bob2_x: f32,
-    pub bob2_y: f32,
+    pub bob1_x: f64,
+    pub bob1_y: f64,
+    pub bob2_x: f64,
+    pub bob2_y: f64,
 }
 
 impl PartialEq for BobCoordinates {
@@ -21,36 +21,35 @@ impl PartialEq for BobCoordinates {
 }
 
 pub struct Vector2 {
-    pub x: f32,
-    pub y: f32,
+    pub x: f64,
+    pub y: f64,
 }
 
 impl Vector2 {
-    pub fn dot(&self, v: Vector2) -> f32 {
+    pub fn dot(&self, v: Vector2) -> f64 {
         return self.x * v.x + self.y * v.y;
     }
 
-    pub fn cross(&self, v: Vector2) -> f32 {
-        // returns f32 despite being cross product as a two dimensional cross product has only one non zero term in three dimensions
+    pub fn cross(&self, v: Vector2) -> f64 {
+        // returns f64 despite being cross product as a two dimensional cross product has only one non zero term in three dimensions
         return self.x * v.y - self.y * v.x;
     }
 }
 
 #[derive(Default)]
 pub struct Pendulum {
-    // Any variables using f32 are because macroquad draw functions use f32 inputs
     // mass in kg
-    pub bob1_mass: f32,
-    pub bob2_mass: f32,
+    pub bob1_mass: f64,
+    pub bob2_mass: f64,
     // length in m
-    pub arm1_length: f32,
-    pub arm2_length: f32,
+    pub arm1_length: f64,
+    pub arm2_length: f64,
     // angular position in rad, +ve is counter-clockwise
-    pub arm1_angular_position: f32,
-    pub arm2_angular_position: f32,
+    pub arm1_angular_position: f64,
+    pub arm2_angular_position: f64,
     // angular velocity in rad/s, +vs is counter-clockwise
-    pub arm1_angular_velocity: f32,
-    pub arm2_angular_velocity: f32,
+    pub arm1_angular_velocity: f64,
+    pub arm2_angular_velocity: f64,
 }
 
 impl Pendulum {
@@ -69,10 +68,10 @@ impl Pendulum {
         };
     }
 
-    pub fn energy_kinetic(&self) -> f32 {
+    pub fn energy_kinetic(&self) -> f64 {
         let moment_of_intertia1 = self.bob1_mass * self.arm1_length;
         let moment_of_intertia2 = self.bob2_mass * self.arm2_length;
-        let mut kinetic_energy: f32 = 0.0;
+        let mut kinetic_energy: f64 = 0.0;
 
         kinetic_energy = kinetic_energy + moment_of_intertia1 * self.arm1_angular_velocity.powi(2);
         kinetic_energy = kinetic_energy + moment_of_intertia2 * self.arm2_angular_velocity.powi(2);
@@ -84,7 +83,7 @@ impl Pendulum {
         return kinetic_energy * 0.5;
     }
 
-    pub fn energy_potential(&self) -> f32 {
+    pub fn energy_potential(&self) -> f64 {
         let height_pendulum_base = self.arm1_length + self.arm2_length;
         let bob_coordinates = self.bob_coordinates();
 
@@ -94,7 +93,7 @@ impl Pendulum {
         return potential_energy * G;
     }
 
-    pub fn energy_total(&self) -> f32 {
+    pub fn energy_total(&self) -> f64 {
         let total_energy = self.energy_potential() + self.energy_kinetic();
 
         return total_energy;
@@ -103,11 +102,11 @@ impl Pendulum {
 
 #[cfg(test)]
 mod tests {
-    use std::f32::consts::PI;
+    use std::f64::consts::PI;
 
     use crate::Pendulum;
 
-    const FLOAT_TOLERANCE: f32 = 0.000001;
+    const FLOAT_TOLERANCE: f64 = 0.000001;
 
     #[test]
     fn test_bob_coordinates() {
