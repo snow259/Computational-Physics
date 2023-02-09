@@ -1,4 +1,4 @@
-pub const G: f32 = 9.81;
+pub const G: f64 = 9.81;
 
 pub struct Coordinates(pub f32, pub f32);
 
@@ -106,7 +106,7 @@ mod tests {
 
     use crate::Pendulum;
 
-    const FLOAT_TOLERANCE: f64 = 0.000001;
+    const FLOAT_TOLERANCE: f64 = 0.000_000_000_000_1;
 
     #[test]
     fn test_bob_coordinates() {
@@ -135,5 +135,31 @@ mod tests {
         assert!((pendulum2.bob_coordinates().bob1_y - (-10.0)).abs() < FLOAT_TOLERANCE);
         assert!((pendulum2.bob_coordinates().bob2_x - 0.0).abs() < FLOAT_TOLERANCE);
         assert!((pendulum2.bob_coordinates().bob2_y - (-20.0)).abs() < FLOAT_TOLERANCE);
+    }
+
+    #[test]
+    fn test_energy_potential() {
+        let pendulum1 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_angular_position: 1.5 * PI,
+            arm2_angular_position: 1.5 * PI,
+            ..Default::default()
+        };
+
+        let pendulum2 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_angular_position: 0.0,
+            arm2_angular_position: 0.0,
+            ..Default::default()
+        };
+
+        assert!((pendulum1.energy_potential() - 981.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum2.energy_potential() - 3924.0).abs() < FLOAT_TOLERANCE);
     }
 }
