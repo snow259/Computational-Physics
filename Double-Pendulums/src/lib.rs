@@ -55,11 +55,11 @@ pub struct Pendulum {
 
 impl Pendulum {
     pub fn bob_coordinates(&self) -> BobCoordinates {
-        let bob1_x = self.arm1_length * self.arm1_angular_position.sin();
-        let bob1_y = self.arm1_length * self.arm1_angular_position.cos();
+        let bob1_x = self.arm1_length * self.arm1_angular_position.cos();
+        let bob1_y = self.arm1_length * self.arm1_angular_position.sin();
 
-        let bob2_x = bob1_x + self.arm2_length * self.arm2_angular_position.sin();
-        let bob2_y = bob1_y + self.arm2_length * self.arm2_angular_position.cos();
+        let bob2_x = bob1_x + self.arm2_length * self.arm2_angular_position.cos();
+        let bob2_y = bob1_y + self.arm2_length * self.arm2_angular_position.sin();
 
         return BobCoordinates {
             bob1_x,
