@@ -1,8 +1,9 @@
-const G: f32 = 9.81;
+pub const G: f32 = 9.81;
 
 pub struct Coordinates(pub f32, pub f32);
 
 pub struct BobCoordinates {
+    // Without BobCoordinates, there was repeated unpacking of coordinates across the code
     pub bob1_x: f32,
     pub bob1_y: f32,
     pub bob2_x: f32,
@@ -37,8 +38,8 @@ pub struct Pendulum {
     pub arm1_angular_position: f32,
     pub arm2_angular_position: f32,
     // angular velocity in rad/s, +vs is counter-clockwise
-    pub arm1_angular_velocity: f64,
-    pub arm2_angular_velocity: f64,
+    pub arm1_angular_velocity: f32,
+    pub arm2_angular_velocity: f32,
 }
 
 impl Pendulum {
@@ -58,7 +59,18 @@ impl Pendulum {
     }
 
     pub fn energy_kinetic(&self) -> f32 {
-        0.0
+        let moment_of_intertia1 = self.bob1_mass * self.arm1_length;
+        let moment_of_intertia2 = self.bob2_mass * self.arm2_length;
+        let mut kinetic_energy: f32 = 0.0;
+
+        kinetic_energy = kinetic_energy + moment_of_intertia1 * self.arm1_angular_velocity.powi(2);
+        kinetic_energy = kinetic_energy + moment_of_intertia2 * self.arm2_angular_velocity.powi(2);
+        kinetic_energy = kinetic_energy
+            + self.bob1_mass * (self.arm1_length * self.arm1_angular_velocity).powi(2);
+        kinetic_energy = kinetic_energy
+            + self.bob2_mass * (self.arm2_length * self.arm2_angular_velocity).powi(2);
+
+        return kinetic_energy * 0.5;
     }
 
     pub fn energy_potential(&self) -> f32 {

@@ -47,7 +47,7 @@ async fn main() {
         clear_background(LIGHTGRAY);
 
         if show_ui == true {
-            draw_energy();
+            draw_energy(&pendulums);
         }
 
         for pendulum in &pendulums {
@@ -73,4 +73,38 @@ fn draw_pendulum(pendulum: &Pendulum, x_centre: f32, y_centre: f32, radius: f32,
     draw_circle(x1, y1, radius, DARKGRAY);
     draw_circle(x2, y2, radius, DARKGRAY);
 }
+
+fn draw_energy(pendulums: &Vec<double_pendulums::Pendulum>) {
+    let mut kinetic_energy = 0.0;
+    let mut potential_energy = 0.0;
+    let mut total_energy = 0.0;
+    for pendulum in pendulums {
+        kinetic_energy = kinetic_energy + pendulum.energy_kinetic();
+        potential_energy = potential_energy + pendulum.energy_potential();
+        total_energy = total_energy + pendulum.energy_total();
+    }
+
+    draw_text(
+        &format!("Kinetic Energy: {} J", kinetic_energy),
+        10.0,
+        20.0,
+        20.0,
+        BLACK,
+    );
+
+    draw_text(
+        &format!("Potential Energy: {} J", potential_energy),
+        10.0,
+        40.0,
+        20.0,
+        BLACK,
+    );
+
+    draw_text(
+        &format!("Total Energy: {} J", total_energy),
+        10.0,
+        60.0,
+        20.0,
+        BLACK,
+    );
 }
