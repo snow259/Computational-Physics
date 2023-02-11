@@ -69,6 +69,7 @@ impl Pendulum {
     }
 
     pub fn energy_kinetic(&self) -> f64 {
+        // Kinetic energy formula comes from https://en.wikipedia.org/wiki/Double_pendulum#Analysis_and_interpretation
         let moment_of_intertia1 = self.bob1_mass * self.arm1_length.powi(2);
         let moment_of_intertia2 = self.bob2_mass * self.arm2_length.powi(2);
         let mut kinetic_energy: f64 = 0.0;

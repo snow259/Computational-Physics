@@ -26,47 +26,6 @@ fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
     return pendulums;
 }
 
-fn window_conf() -> Conf {
-    Conf {
-        // .to_owned() converts &str to String
-        window_title: "Double Pendulums".to_owned(),
-        window_width: 1280,
-        window_height: 720,
-        // Fills remaining values with defaults
-        ..Default::default()
-    }
-}
-
-#[macroquad::main(window_conf)]
-async fn main() {
-    let x_centre = screen_width() / 2.0;
-    let y_centre = screen_height() / 2.0;
-    let radius = 5.0;
-    let thickness = 1.0;
-
-    let mut show_ui = true;
-
-    let pendulums = new_pendulums(1);
-    loop {
-        clear_background(LIGHTGRAY);
-
-        if show_ui == true {
-            draw_energy(&pendulums);
-        }
-
-        if is_key_pressed(KeyCode::F2) {
-            show_ui = toggle_ui(&show_ui);
-        }
-
-        for pendulum in &pendulums {
-            draw_pendulum(&pendulum, x_centre, y_centre, radius, thickness);
-        }
-        draw_circle(x_centre, y_centre, 2.0, BLACK);
-
-        next_frame().await
-    }
-}
-
 fn draw_pendulum(pendulum: &Pendulum, x_centre: f32, y_centre: f32, radius: f32, thickness: f32) {
     // Adding offset to render relative to center of screen
     let bob_coordinates = pendulum.bob_coordinates();
@@ -122,5 +81,46 @@ fn toggle_ui(show_ui: &bool) -> bool {
         return false;
     } else {
         return true;
+    }
+}
+
+fn window_conf() -> Conf {
+    Conf {
+        // .to_owned() converts &str to String
+        window_title: "Double Pendulums".to_owned(),
+        window_width: 1280,
+        window_height: 720,
+        // Fills remaining values with defaults
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_conf)]
+async fn main() {
+    let x_centre = screen_width() / 2.0;
+    let y_centre = screen_height() / 2.0;
+    let radius = 5.0;
+    let thickness = 1.0;
+
+    let mut show_ui = true;
+
+    let pendulums = new_pendulums(1);
+    loop {
+        clear_background(LIGHTGRAY);
+
+        if show_ui == true {
+            draw_energy(&pendulums);
+        }
+
+        if is_key_pressed(KeyCode::F2) {
+            show_ui = toggle_ui(&show_ui);
+        }
+
+        for pendulum in &pendulums {
+            draw_pendulum(&pendulum, x_centre, y_centre, radius, thickness);
+        }
+        draw_circle(x_centre, y_centre, 2.0, BLACK);
+
+        next_frame().await
     }
 }
