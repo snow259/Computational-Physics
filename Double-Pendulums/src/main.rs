@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use ::rand::prelude::*;
 use double_pendulums::*;
 use macroquad::prelude::*;
@@ -12,10 +14,12 @@ fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
             bob2_mass: 10.0,
             arm1_length: 100.0,
             arm2_length: 100.0,
-            arm1_angular_position: rng.gen_range(-6.28..6.28),
-            arm2_angular_position: rng.gen_range(-6.28..6.28),
-            arm1_angular_velocity: rng.gen_range(-3.14..3.14),
-            arm2_angular_velocity: rng.gen_range(-3.14..3.14),
+            // arm1_angular_position: rng.gen_range(-6.28..6.28),
+            // arm2_angular_position: rng.gen_range(-6.28..6.28),
+            arm1_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
+            arm2_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
+            arm1_angular_velocity: rng.gen_range(-PI..PI),
+            arm2_angular_velocity: rng.gen_range(-PI..PI),
         });
     }
 
@@ -42,7 +46,7 @@ async fn main() {
 
     let mut show_ui = true;
 
-    let pendulums = new_pendulums(5);
+    let pendulums = new_pendulums(1);
     loop {
         clear_background(LIGHTGRAY);
 

@@ -138,6 +138,32 @@ mod tests {
     }
 
     #[test]
+    fn test_energy_kinetic() {
+        let pendulum1 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_angular_velocity: 1.0,
+            arm2_angular_velocity: 1.0,
+            ..Default::default()
+        };
+
+        let pendulum2 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_angular_velocity: -1.0,
+            arm2_angular_velocity: 0.0,
+            ..Default::default()
+        };
+
+        assert!((pendulum1.energy_kinetic() - 2000.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum2.energy_kinetic() - 1000.0).abs() < FLOAT_TOLERANCE);
+    }
+
+    #[test]
     fn test_energy_potential() {
         let pendulum1 = Pendulum {
             arm1_length: 10.0,
