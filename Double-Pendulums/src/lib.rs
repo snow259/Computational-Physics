@@ -69,8 +69,8 @@ impl Pendulum {
     }
 
     pub fn energy_kinetic(&self) -> f64 {
-        let moment_of_intertia1 = self.bob1_mass * self.arm1_length;
-        let moment_of_intertia2 = self.bob2_mass * self.arm2_length;
+        let moment_of_intertia1 = self.bob1_mass * self.arm1_length.powi(2);
+        let moment_of_intertia2 = self.bob2_mass * self.arm2_length.powi(2);
         let mut kinetic_energy: f64 = 0.0;
 
         kinetic_energy = kinetic_energy + moment_of_intertia1 * self.arm1_angular_velocity.powi(2);
