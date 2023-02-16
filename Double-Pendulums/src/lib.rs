@@ -106,8 +106,10 @@ impl Pendulum {
     pub fn acc_arm1(&self) -> f64 {
         let term1 =
             -G * (2.0 * self.bob1_mass + self.bob2_mass) * (self.arm1_angular_position).sin();
+
         let term2 = -(self.bob2_mass * G)
             * (self.arm1_angular_position - 2.0 * self.arm2_angular_position).sin();
+
         let term3 = -2.0
             * (self.arm1_angular_position - self.arm2_angular_position).sin()
             * self.bob2_mass
@@ -115,6 +117,7 @@ impl Pendulum {
                 + self.arm1_angular_velocity.powi(2)
                     * self.arm1_length
                     * (self.arm1_angular_position - self.arm2_angular_position).cos());
+
         let denominator = self.arm1_length
             * (2.0 * self.bob1_mass + self.bob2_mass
                 - self.bob2_mass
@@ -125,12 +128,16 @@ impl Pendulum {
 
     pub fn acc_arm2(&self) -> f64 {
         let term1 = 2.0 * (self.arm1_angular_position - self.arm2_angular_position).sin();
-        let term2 = (self.arm1_angular_velocity.powi(2)
+
+        let term2 = self.arm1_angular_velocity.powi(2)
             * self.arm1_length
-            * (self.bob1_mass + self.bob2_mass));
+            * (self.bob1_mass + self.bob2_mass);
+
         let term3 = G * (self.bob1_mass + self.bob2_mass) * (self.arm1_angular_position).cos();
+
         let term4 = self.arm2_angular_velocity.powi(2) * self.arm2_length
             + self.bob2_mass * (self.arm1_angular_position - self.arm2_angular_position).cos();
+
         let denominator = self.arm2_length
             * (2.0 * self.bob1_mass + self.bob2_mass
                 - self.bob2_mass
@@ -275,5 +282,61 @@ mod tests {
                 .abs()
                 < FLOAT_TOLERANCE
         );
+    }
+
+    #[test]
+    fn test_acc_arm1() {
+        let pendulum1 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_angular_position: 1.5 * PI,
+            arm2_angular_position: 1.5 * PI,
+            arm1_angular_velocity: 0.0,
+            arm2_angular_velocity: 0.0,
+        };
+
+        let pendulum2 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_angular_position: 0.5 * PI,
+            arm2_angular_position: 0.5 * PI,
+            arm1_angular_velocity: 0.0,
+            arm2_angular_velocity: 0.0,
+        };
+
+        assert!(pendulum1.acc_arm1() - 0.0 < FLOAT_TOLERANCE);
+        assert!(pendulum2.acc_arm1() - 0.0 < FLOAT_TOLERANCE);
+    }
+
+    #[test]
+    fn test_acc_arm2() {
+        let pendulum1 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_angular_position: 1.5 * PI,
+            arm2_angular_position: 1.5 * PI,
+            arm1_angular_velocity: 0.0,
+            arm2_angular_velocity: 0.0,
+        };
+
+        let pendulum2 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_angular_position: 0.5 * PI,
+            arm2_angular_position: 0.5 * PI,
+            arm1_angular_velocity: 0.0,
+            arm2_angular_velocity: 0.0,
+        };
+
+        assert!(pendulum1.acc_arm2() - 0.0 < FLOAT_TOLERANCE);
+        assert!(pendulum2.acc_arm2() - 0.0 < FLOAT_TOLERANCE);
     }
 }
