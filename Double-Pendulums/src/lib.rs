@@ -54,6 +54,7 @@ pub struct Pendulum {
 
 impl Pendulum {
     pub fn bob_coordinates(&self) -> BobCoordinates {
+        // Coordinates are returned keeping origin at the base of the pendulum
         let bob1_x = self.arm1_length * self.arm1_angular_position.cos();
         let bob1_y = self.arm1_length * self.arm1_angular_position.sin();
 
@@ -85,6 +86,8 @@ impl Pendulum {
     }
 
     pub fn energy_potential(&self) -> f64 {
+        // Potential energy is calculated after shifting origin to lower most extent a pendulum can go
+        // This is treated as the ground, and since all pendulums in the simulation have the same arm lengths, is the same for all pendulums
         let height_pendulum_base = self.arm1_length + self.arm2_length;
         let bob_coordinates = self.bob_coordinates();
 
@@ -98,6 +101,54 @@ impl Pendulum {
         let total_energy = self.energy_potential() + self.energy_kinetic();
 
         return total_energy;
+    }
+
+    pub fn acc_arm1(&self) -> f64 {
+        let term1 =
+            -G * (2.0 * self.bob1_mass + self.bob2_mass) * (self.arm1_angular_position).sin();
+        let term2 = -(self.bob2_mass * G)
+            * (self.arm1_angular_position - 2.0 * self.arm2_angular_position).sin();
+        let term3 = -2.0
+            * (self.arm1_angular_position - self.arm2_angular_position).sin()
+            * self.bob2_mass
+            * (self.arm2_angular_velocity.powi(2) * self.arm2_length
+                + self.arm1_angular_velocity.powi(2)
+                    * self.arm1_length
+                    * (self.arm1_angular_position - self.arm2_angular_position).cos());
+        let denominator = self.arm1_length
+            * (2.0 * self.bob1_mass + self.bob2_mass
+                - self.bob2_mass
+                    * (2.0 * self.arm1_angular_position - 2.0 * self.arm2_angular_position).cos());
+
+        return (term1 + term2 + term3) / denominator;
+    }
+
+    pub fn acc_arm2(&self) -> f64 {
+        let term1 = 2.0 * (self.arm1_angular_position - self.arm2_angular_position).sin();
+        let term2 = (self.arm1_angular_velocity.powi(2)
+            * self.arm1_length
+            * (self.bob1_mass + self.bob2_mass));
+        let term3 = G * (self.bob1_mass + self.bob2_mass) * (self.arm1_angular_position).cos();
+        let term4 = self.arm2_angular_velocity.powi(2) * self.arm2_length
+            + self.bob2_mass * (self.arm1_angular_position - self.arm2_angular_position).cos();
+        let denominator = self.arm2_length
+            * (2.0 * self.bob1_mass + self.bob2_mass
+                - self.bob2_mass
+                    * (2.0 * self.arm1_angular_position - 2.0 * self.arm2_angular_position).cos());
+
+        return (term1 * (term2 + term3 + term4)) / denominator;
+    }
+
+    pub fn update(&mut self, h: f64) {
+        let new_arm1_angular_velocity = self.arm1_angular_velocity + h * self.acc_arm1();
+        let new_arm2_angular_velocity = self.arm2_angular_velocity + h * self.acc_arm2();
+        let new_arm1_angular_position = self.arm1_angular_position + h * self.arm1_angular_velocity;
+        let new_arm2_angular_position = self.arm2_angular_position + h * self.arm2_angular_velocity;
+
+        self.arm1_angular_velocity = new_arm1_angular_velocity;
+        self.arm2_angular_velocity = new_arm2_angular_velocity;
+        self.arm1_angular_position = new_arm1_angular_position;
+        self.arm2_angular_position = new_arm2_angular_position;
     }
 }
 

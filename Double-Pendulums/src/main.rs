@@ -16,10 +16,14 @@ fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
             arm2_length: 100.0,
             // arm1_angular_position: rng.gen_range(-6.28..6.28),
             // arm2_angular_position: rng.gen_range(-6.28..6.28),
-            arm1_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
-            arm2_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
-            arm1_angular_velocity: rng.gen_range(-PI..PI),
-            arm2_angular_velocity: rng.gen_range(-PI..PI),
+            // arm1_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
+            // arm2_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
+            arm1_angular_position: 1.0 * PI,
+            arm2_angular_position: 1.333 * PI,
+            // arm1_angular_velocity: rng.gen_range(-PI..PI),
+            // arm2_angular_velocity: rng.gen_range(-PI..PI),
+            arm1_angular_velocity: 0.0,
+            arm2_angular_velocity: 0.0,
         });
     }
 
@@ -104,7 +108,7 @@ async fn main() {
 
     let mut show_ui = true;
 
-    let pendulums = new_pendulums(1);
+    let mut pendulums = new_pendulums(1);
     loop {
         clear_background(LIGHTGRAY);
 
@@ -114,6 +118,10 @@ async fn main() {
 
         if is_key_pressed(KeyCode::F2) {
             show_ui = toggle_ui(&show_ui);
+        }
+
+        for pendulum in &mut pendulums {
+            pendulum.update(0.1);
         }
 
         for pendulum in &pendulums {
