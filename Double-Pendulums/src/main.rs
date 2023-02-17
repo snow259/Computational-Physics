@@ -88,6 +88,14 @@ fn toggle_ui(show_ui: &bool) -> bool {
     }
 }
 
+fn toggle_pause(pause: &bool) -> bool {
+    if pause == &true {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 fn window_conf() -> Conf {
     Conf {
         // .to_owned() converts &str to String
@@ -107,6 +115,7 @@ async fn main() {
     let thickness = 1.0;
 
     let mut show_ui = true;
+    let mut pause = true;
 
     let mut pendulums = new_pendulums(1);
     loop {
@@ -119,9 +128,14 @@ async fn main() {
         if is_key_pressed(KeyCode::F2) {
             show_ui = toggle_ui(&show_ui);
         }
+        if is_key_pressed(KeyCode::Space) {
+            pause = toggle_pause(&pause);
+        }
 
-        for pendulum in &mut pendulums {
-            pendulum.update(0.1);
+        if pause == false {
+            for pendulum in &mut pendulums {
+                pendulum.update(0.05);
+            }
         }
 
         for pendulum in &pendulums {
