@@ -44,7 +44,7 @@ pub struct Pendulum {
     // length in m
     pub arm1_length: f64,
     pub arm2_length: f64,
-    // angular position in rad, +ve is counter-clockwise
+    // angular position in rad, +ve is counter-clockwise, vertically down is 0
     pub arm1_angular_position: f64,
     pub arm2_angular_position: f64,
     // angular velocity in rad/s, +vs is counter-clockwise
@@ -55,11 +55,11 @@ pub struct Pendulum {
 impl Pendulum {
     pub fn bob_coordinates(&self) -> BobCoordinates {
         // Coordinates are returned keeping origin at the base of the pendulum
-        let bob1_x = self.arm1_length * self.arm1_angular_position.cos();
-        let bob1_y = self.arm1_length * self.arm1_angular_position.sin();
+        let bob1_x = self.arm1_length * self.arm1_angular_position.sin();
+        let bob1_y = -self.arm1_length * self.arm1_angular_position.cos();
 
-        let bob2_x = bob1_x + self.arm2_length * self.arm2_angular_position.cos();
-        let bob2_y = bob1_y + self.arm2_length * self.arm2_angular_position.sin();
+        let bob2_x = bob1_x + self.arm2_length * self.arm2_angular_position.sin();
+        let bob2_y = bob1_y - self.arm2_length * self.arm2_angular_position.cos();
 
         return BobCoordinates {
             bob1_x,
@@ -172,23 +172,23 @@ mod tests {
         let pendulum1 = Pendulum {
             arm1_length: 10.0,
             arm2_length: 10.0,
-            arm1_angular_position: 0.0,
-            arm2_angular_position: 0.0,
+            arm1_angular_position: 0.5 * PI,
+            arm2_angular_position: 0.5 * PI,
             ..Default::default()
         };
 
         let pendulum2 = Pendulum {
             arm1_length: 10.0,
             arm2_length: 10.0,
-            arm1_angular_position: 1.5 * PI,
-            arm2_angular_position: 1.5 * PI,
+            arm1_angular_position: 0.0 * PI,
+            arm2_angular_position: 0.0 * PI,
             ..Default::default()
         };
 
-        assert_eq!(pendulum1.bob_coordinates().bob1_x, 10.0);
-        assert_eq!(pendulum1.bob_coordinates().bob1_y, 0.0);
-        assert_eq!(pendulum1.bob_coordinates().bob2_x, 20.0);
-        assert_eq!(pendulum1.bob_coordinates().bob2_y, 0.0);
+        assert!(pendulum1.bob_coordinates().bob1_x - 10.0 < FLOAT_TOLERANCE);
+        assert!(pendulum1.bob_coordinates().bob1_y - 0.0 < FLOAT_TOLERANCE);
+        assert!(pendulum1.bob_coordinates().bob2_x - 20.0 < FLOAT_TOLERANCE);
+        assert!(pendulum1.bob_coordinates().bob2_y - 0.0 < FLOAT_TOLERANCE);
 
         assert!((pendulum2.bob_coordinates().bob1_x - 0.0).abs() < FLOAT_TOLERANCE);
         assert!((pendulum2.bob_coordinates().bob1_y - (-10.0)).abs() < FLOAT_TOLERANCE);
@@ -229,8 +229,8 @@ mod tests {
             arm2_length: 10.0,
             bob1_mass: 10.0,
             bob2_mass: 10.0,
-            arm1_angular_position: 1.5 * PI,
-            arm2_angular_position: 1.5 * PI,
+            arm1_angular_position: 0.0 * PI,
+            arm2_angular_position: 0.0 * PI,
             ..Default::default()
         };
 
@@ -239,8 +239,8 @@ mod tests {
             arm2_length: 10.0,
             bob1_mass: 10.0,
             bob2_mass: 10.0,
-            arm1_angular_position: 0.0,
-            arm2_angular_position: 0.0,
+            arm1_angular_position: 0.5 * PI,
+            arm2_angular_position: 0.5 * PI,
             ..Default::default()
         };
 
@@ -291,8 +291,8 @@ mod tests {
             arm2_length: 10.0,
             bob1_mass: 10.0,
             bob2_mass: 10.0,
-            arm1_angular_position: 1.5 * PI,
-            arm2_angular_position: 1.5 * PI,
+            arm1_angular_position: 0.0 * PI,
+            arm2_angular_position: 0.0 * PI,
             arm1_angular_velocity: 0.0,
             arm2_angular_velocity: 0.0,
         };

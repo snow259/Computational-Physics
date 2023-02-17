@@ -18,8 +18,8 @@ fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
             // arm2_angular_position: rng.gen_range(-6.28..6.28),
             // arm1_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
             // arm2_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
-            arm1_angular_position: 1.0 * PI,
-            arm2_angular_position: 1.333 * PI,
+            arm1_angular_position: 0.5 * PI,
+            arm2_angular_position: 0.500000001 * PI,
             // arm1_angular_velocity: rng.gen_range(-PI..PI),
             // arm2_angular_velocity: rng.gen_range(-PI..PI),
             arm1_angular_velocity: 0.0,
@@ -33,9 +33,9 @@ fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
 fn draw_pendulum(pendulum: &Pendulum, x_centre: f32, y_centre: f32, radius: f32, thickness: f32) {
     // Adding offset to render relative to center of screen
     let bob_coordinates = pendulum.bob_coordinates();
-    let x1 = x_centre - bob_coordinates.bob1_x as f32;
+    let x1 = x_centre + bob_coordinates.bob1_x as f32;
     let y1 = y_centre - bob_coordinates.bob1_y as f32;
-    let x2 = x_centre - bob_coordinates.bob2_x as f32;
+    let x2 = x_centre + bob_coordinates.bob2_x as f32;
     let y2 = y_centre - bob_coordinates.bob2_y as f32;
 
     // Draw circles at bobs and connect center to bob1, and bob1 to bob2
