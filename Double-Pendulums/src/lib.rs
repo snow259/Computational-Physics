@@ -57,6 +57,32 @@ impl Vector2 {
     }
 }
 
+pub struct PendulumState {
+    // angular position in rad, +ve is counter-clockwise, vertically down is 0
+    // angular velocity in rad/s, +vs is counter-clockwise
+    pub arm1_angular_position: f64,
+    pub arm1_angular_velocity: f64,
+
+    pub arm2_angular_position: f64,
+    pub arm2_angular_velocity: f64,
+}
+
+impl PendulumState {
+    pub fn increment_state_arm1(
+        &self,
+        position_increment: f64,
+        velocity_increment: f64,
+    ) -> PendulumState {
+        // Increment arm1 state
+        return PendulumState {
+            arm1_angular_position: self.arm1_angular_position + position_increment,
+            arm1_angular_velocity: self.arm1_angular_velocity + velocity_increment,
+            arm2_angular_position: self.arm2_angular_position,
+            arm2_angular_velocity: self.arm2_angular_velocity,
+        };
+    }
+}
+
 #[derive(Default)]
 pub struct Pendulum {
     // mass in kg
@@ -126,76 +152,68 @@ impl Pendulum {
 
     pub fn acc_arm1(&self) -> f64 {
         // Returns acceleration on arm1 from current pendulum state
-        return self.acc_arm1_at_position(
-            self.arm1_angular_position,
-            self.arm1_angular_velocity,
-            self.arm2_angular_position,
-            self.arm2_angular_velocity,
-        );
+        return self.acc_arm1_at_position(PendulumState {
+            arm1_angular_position: self.arm1_angular_position,
+            arm1_angular_velocity: self.arm1_angular_velocity,
+            arm2_angular_position: self.arm2_angular_position,
+            arm2_angular_velocity: self.arm2_angular_velocity,
+        });
     }
 
     pub fn acc_arm2(&self) -> f64 {
         // Returns acceleration on arm2 from current pendulum state
-        return self.acc_arm2_at_position(
-            self.arm1_angular_position,
-            self.arm1_angular_velocity,
-            self.arm2_angular_position,
-            self.arm2_angular_velocity,
-        );
+        return self.acc_arm2_at_position(PendulumState {
+            arm1_angular_position: self.arm1_angular_position,
+            arm1_angular_velocity: self.arm1_angular_velocity,
+            arm2_angular_position: self.arm2_angular_position,
+            arm2_angular_velocity: self.arm2_angular_velocity,
+        });
     }
 
     // acc_arm_at_position functions returns acceleration on arms from given position and velocity, and current arm length and mass
-    pub fn acc_arm1_at_position(
-        &self,
-        arm1_angular_position: f64,
-        arm1_angular_velocity: f64,
-        arm2_angular_position: f64,
-        arm2_angular_velocity: f64,
-    ) -> f64 {
+    pub fn acc_arm1_at_position(&self, state: PendulumState) -> f64 {
         // Returns acceleration on arm1 from given position and velocity
-        let term1 = -G * (2.0 * self.bob1_mass + self.bob2_mass) * (arm1_angular_position).sin();
+        let term1 =
+            -G * (2.0 * self.bob1_mass + self.bob2_mass) * (state.arm1_angular_position).sin();
 
-        let term2 =
-            -(self.bob2_mass * G) * (arm1_angular_position - 2.0 * arm2_angular_position).sin();
+        let term2 = -(self.bob2_mass * G)
+            * (state.arm1_angular_position - 2.0 * state.arm2_angular_position).sin();
 
         let term3 = -2.0
-            * (arm1_angular_position - arm2_angular_position).sin()
+            * (state.arm1_angular_position - state.arm2_angular_position).sin()
             * self.bob2_mass
-            * (arm2_angular_velocity.powi(2) * self.arm2_length
-                + arm1_angular_velocity.powi(2)
+            * (state.arm2_angular_velocity.powi(2) * self.arm2_length
+                + state.arm1_angular_velocity.powi(2)
                     * self.arm1_length
-                    * (arm1_angular_position - arm2_angular_position).cos());
+                    * (state.arm1_angular_position - state.arm2_angular_position).cos());
 
         let denominator = self.arm1_length
             * (2.0 * self.bob1_mass + self.bob2_mass
                 - self.bob2_mass
-                    * (2.0 * arm1_angular_position - 2.0 * arm2_angular_position).cos());
+                    * (2.0 * state.arm1_angular_position - 2.0 * state.arm2_angular_position)
+                        .cos());
 
         return (term1 + term2 + term3) / denominator;
     }
 
-    pub fn acc_arm2_at_position(
-        &self,
-        arm1_angular_position: f64,
-        arm1_angular_velocity: f64,
-        arm2_angular_position: f64,
-        arm2_angular_velocity: f64,
-    ) -> f64 {
+    pub fn acc_arm2_at_position(&self, state: PendulumState) -> f64 {
         // Returns acceleration on arm2 from given position and velocity
-        let term1 = 2.0 * (arm1_angular_position - arm2_angular_position).sin();
+        let term1 = 2.0 * (state.arm1_angular_position - state.arm2_angular_position).sin();
 
-        let term2 =
-            arm1_angular_velocity.powi(2) * self.arm1_length * (self.bob1_mass + self.bob2_mass);
+        let term2 = state.arm1_angular_velocity.powi(2)
+            * self.arm1_length
+            * (self.bob1_mass + self.bob2_mass);
 
-        let term3 = G * (self.bob1_mass + self.bob2_mass) * (arm1_angular_position).cos();
+        let term3 = G * (self.bob1_mass + self.bob2_mass) * (state.arm1_angular_position).cos();
 
-        let term4 = arm2_angular_velocity.powi(2) * self.arm2_length
-            + self.bob2_mass * (arm1_angular_position - arm2_angular_position).cos();
+        let term4 = state.arm2_angular_velocity.powi(2) * self.arm2_length
+            + self.bob2_mass * (state.arm1_angular_position - state.arm2_angular_position).cos();
 
         let denominator = self.arm2_length
             * (2.0 * self.bob1_mass + self.bob2_mass
                 - self.bob2_mass
-                    * (2.0 * arm1_angular_position - 2.0 * arm2_angular_position).cos());
+                    * (2.0 * state.arm1_angular_position - 2.0 * state.arm2_angular_position)
+                        .cos());
 
         return (term1 * (term2 + term3 + term4)) / denominator;
     }
