@@ -26,6 +26,27 @@ pub struct Vector2 {
 }
 
 impl Vector2 {
+    pub fn scale(&self, k: f64) -> Vector2 {
+        return Vector2 {
+            x: k * self.x,
+            y: k * self.y,
+        };
+    }
+
+    pub fn add(&self, v: Vector2) -> Vector2 {
+        return Vector2 {
+            x: self.x + v.x,
+            y: self.y + v.y,
+        };
+    }
+
+    pub fn subtract(&self, v: Vector2) -> Vector2 {
+        return Vector2 {
+            x: self.x - v.x,
+            y: self.y - v.y,
+        };
+    }
+
     pub fn dot(&self, v: Vector2) -> f64 {
         return self.x * v.x + self.y * v.y;
     }
