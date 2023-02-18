@@ -179,7 +179,7 @@ impl Pendulum {
 
     pub fn acc_arm1(&self) -> f64 {
         // Returns acceleration on arm1 from current pendulum state
-        return self.acc_arm1_at_position(PendulumState {
+        return self.acc_arm1_at_position(&PendulumState {
             arm1_angular_position: self.arm1_angular_position,
             arm1_angular_velocity: self.arm1_angular_velocity,
             arm2_angular_position: self.arm2_angular_position,
@@ -189,7 +189,7 @@ impl Pendulum {
 
     pub fn acc_arm2(&self) -> f64 {
         // Returns acceleration on arm2 from current pendulum state
-        return self.acc_arm2_at_position(PendulumState {
+        return self.acc_arm2_at_position(&PendulumState {
             arm1_angular_position: self.arm1_angular_position,
             arm1_angular_velocity: self.arm1_angular_velocity,
             arm2_angular_position: self.arm2_angular_position,
@@ -198,7 +198,7 @@ impl Pendulum {
     }
 
     // acc_arm_at_position functions returns acceleration on arms from given position and velocity, and current arm length and mass
-    pub fn acc_arm1_at_position(&self, state: PendulumState) -> f64 {
+    pub fn acc_arm1_at_position(&self, state: &PendulumState) -> f64 {
         // Returns acceleration on arm1 from given position and velocity
         let term1 =
             -G * (2.0 * self.bob1_mass + self.bob2_mass) * (state.arm1_angular_position).sin();
@@ -223,7 +223,7 @@ impl Pendulum {
         return (term1 + term2 + term3) / denominator;
     }
 
-    pub fn acc_arm2_at_position(&self, state: PendulumState) -> f64 {
+    pub fn acc_arm2_at_position(&self, state: &PendulumState) -> f64 {
         // Returns acceleration on arm2 from given position and velocity
         let term1 = 2.0 * (state.arm1_angular_position - state.arm2_angular_position).sin();
 
@@ -250,6 +250,100 @@ impl Pendulum {
         let new_arm2_angular_velocity = self.arm2_angular_velocity + h * self.acc_arm2();
         let new_arm1_angular_position = self.arm1_angular_position + h * self.arm1_angular_velocity;
         let new_arm2_angular_position = self.arm2_angular_position + h * self.arm2_angular_velocity;
+
+        self.arm1_angular_velocity = new_arm1_angular_velocity;
+        self.arm2_angular_velocity = new_arm2_angular_velocity;
+        self.arm1_angular_position = new_arm1_angular_position;
+        self.arm2_angular_position = new_arm2_angular_position;
+    }
+
+    pub fn update_rk4_rhs(&self, t: f64, state: &PendulumState, arm: i8) -> PendulumState {
+        if arm == 1 {
+            let output = PendulumState {
+                arm1_angular_position: state.arm1_angular_velocity,
+                arm1_angular_velocity: self.acc_arm1_at_position(state),
+                arm2_angular_position: state.arm2_angular_position,
+                arm2_angular_velocity: state.arm2_angular_velocity,
+            };
+            return output;
+        } else if arm == 2 {
+            let output = PendulumState {
+                arm1_angular_position: state.arm1_angular_position,
+                arm1_angular_velocity: state.arm1_angular_velocity,
+                arm2_angular_position: state.arm2_angular_velocity,
+                arm2_angular_velocity: self.acc_arm2_at_position(state),
+            };
+            return output;
+        } else {
+            panic!("Arm index can only be 1 or 2");
+        }
+    }
+
+    pub fn update_rk4(&mut self, t: f64, h: f64) {
+        let state = PendulumState {
+            arm1_angular_position: self.arm1_angular_position,
+            arm1_angular_velocity: self.arm1_angular_velocity,
+            arm2_angular_position: self.arm2_angular_position,
+            arm2_angular_velocity: self.arm2_angular_velocity,
+        };
+
+        let k1 = self.update_rk4_rhs(t, &state, 1);
+        let k2 = self.update_rk4_rhs(
+            t + 0.5 * h,
+            &state.add_state_to_arm(k1.scale_state_of_arm(0.5 * h, 1), 1),
+            1,
+        );
+        let k3 = self.update_rk4_rhs(
+            t + 0.5 * h,
+            &state.add_state_to_arm(k2.scale_state_of_arm(0.5 * h, 1), 1),
+            1,
+        );
+        let k4 = self.update_rk4_rhs(
+            t + 0.5 * h,
+            &state.add_state_to_arm(k3.scale_state_of_arm(h, 1), 1),
+            1,
+        );
+        let new_arm1_angular_position = self.arm1_angular_position
+            + (h / 6.0)
+                * (k1.arm1_angular_position
+                    + 2.0 * k2.arm1_angular_position
+                    + 2.0 * k3.arm1_angular_position
+                    + k4.arm1_angular_position);
+        let new_arm1_angular_velocity = self.arm1_angular_velocity
+            + (h / 6.0)
+                * (k1.arm1_angular_velocity
+                    + 2.0 * k2.arm1_angular_velocity
+                    + 2.0 * k3.arm1_angular_velocity
+                    + k4.arm1_angular_velocity);
+
+        let k1 = self.update_rk4_rhs(t, &state, 2);
+        let k2 = self.update_rk4_rhs(
+            t + 0.5 * h,
+            &state.add_state_to_arm(k1.scale_state_of_arm(0.5 * h, 2), 2),
+            2,
+        );
+        let k3 = self.update_rk4_rhs(
+            t + 0.5 * h,
+            &state.add_state_to_arm(k2.scale_state_of_arm(0.5 * h, 2), 2),
+            2,
+        );
+        let k4 = self.update_rk4_rhs(
+            t + 0.5 * h,
+            &state.add_state_to_arm(k3.scale_state_of_arm(h, 2), 2),
+            2,
+        );
+        let new_arm2_angular_position = self.arm2_angular_position
+            + (h / 6.0)
+                * (k1.arm2_angular_position
+                    + 2.0 * k2.arm2_angular_position
+                    + 2.0 * k3.arm2_angular_position
+                    + k4.arm2_angular_position);
+        let new_arm2_angular_velocity = self.arm2_angular_velocity
+            + (h / 6.0)
+                * (k1.arm2_angular_velocity
+                    + 2.0 * k2.arm2_angular_velocity
+                    + 2.0 * k3.arm2_angular_velocity
+                    + k4.arm2_angular_velocity);
 
         self.arm1_angular_velocity = new_arm1_angular_velocity;
         self.arm2_angular_velocity = new_arm2_angular_velocity;
