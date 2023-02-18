@@ -68,18 +68,45 @@ pub struct PendulumState {
 }
 
 impl PendulumState {
-    pub fn increment_state_arm1(
-        &self,
-        position_increment: f64,
-        velocity_increment: f64,
-    ) -> PendulumState {
+    pub fn scale_state_of_arm(&self, h: f64, arm: i8) -> PendulumState {
         // Increment arm1 state
-        return PendulumState {
-            arm1_angular_position: self.arm1_angular_position + position_increment,
-            arm1_angular_velocity: self.arm1_angular_velocity + velocity_increment,
-            arm2_angular_position: self.arm2_angular_position,
-            arm2_angular_velocity: self.arm2_angular_velocity,
-        };
+        if arm == 1 {
+            return PendulumState {
+                arm1_angular_position: self.arm1_angular_position * h,
+                arm1_angular_velocity: self.arm1_angular_velocity * h,
+                arm2_angular_position: self.arm2_angular_position,
+                arm2_angular_velocity: self.arm2_angular_velocity,
+            };
+        } else if arm == 2 {
+            return PendulumState {
+                arm1_angular_position: self.arm1_angular_position,
+                arm1_angular_velocity: self.arm1_angular_velocity,
+                arm2_angular_position: self.arm2_angular_position * h,
+                arm2_angular_velocity: self.arm2_angular_velocity * h,
+            };
+        } else {
+            panic!("Arm index can only be 1 or 2");
+        }
+    }
+
+    pub fn add_state_to_arm(&self, state: PendulumState, arm: i8) -> PendulumState {
+        if arm == 1 {
+            return PendulumState {
+                arm1_angular_position: self.arm1_angular_position + state.arm1_angular_position,
+                arm1_angular_velocity: self.arm1_angular_velocity + state.arm1_angular_velocity,
+                arm2_angular_position: self.arm2_angular_position,
+                arm2_angular_velocity: self.arm2_angular_velocity,
+            };
+        } else if arm == 2 {
+            return PendulumState {
+                arm1_angular_position: self.arm1_angular_position,
+                arm1_angular_velocity: self.arm1_angular_velocity,
+                arm2_angular_position: self.arm2_angular_position + state.arm2_angular_position,
+                arm2_angular_velocity: self.arm2_angular_velocity + state.arm2_angular_velocity,
+            };
+        } else {
+            panic!("Arm index can only be 1 or 2");
+        }
     }
 }
 
