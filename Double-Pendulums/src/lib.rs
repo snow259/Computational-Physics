@@ -104,44 +104,77 @@ impl Pendulum {
     }
 
     pub fn acc_arm1(&self) -> f64 {
-        let term1 =
-            -G * (2.0 * self.bob1_mass + self.bob2_mass) * (self.arm1_angular_position).sin();
+        // Returns acceleration on arm1 from current pendulum state
+        return self.acc_arm1_at_position(
+            self.arm1_angular_position,
+            self.arm1_angular_velocity,
+            self.arm2_angular_position,
+            self.arm2_angular_velocity,
+        );
+    }
 
-        let term2 = -(self.bob2_mass * G)
-            * (self.arm1_angular_position - 2.0 * self.arm2_angular_position).sin();
+    pub fn acc_arm2(&self) -> f64 {
+        // Returns acceleration on arm2 from current pendulum state
+        return self.acc_arm2_at_position(
+            self.arm1_angular_position,
+            self.arm1_angular_velocity,
+            self.arm2_angular_position,
+            self.arm2_angular_velocity,
+        );
+    }
+
+    // acc_arm_at_position functions returns acceleration on arms from given position and velocity, and current arm length and mass
+    pub fn acc_arm1_at_position(
+        &self,
+        arm1_angular_position: f64,
+        arm1_angular_velocity: f64,
+        arm2_angular_position: f64,
+        arm2_angular_velocity: f64,
+    ) -> f64 {
+        // Returns acceleration on arm1 from given position and velocity
+        let term1 = -G * (2.0 * self.bob1_mass + self.bob2_mass) * (arm1_angular_position).sin();
+
+        let term2 =
+            -(self.bob2_mass * G) * (arm1_angular_position - 2.0 * arm2_angular_position).sin();
 
         let term3 = -2.0
-            * (self.arm1_angular_position - self.arm2_angular_position).sin()
+            * (arm1_angular_position - arm2_angular_position).sin()
             * self.bob2_mass
-            * (self.arm2_angular_velocity.powi(2) * self.arm2_length
-                + self.arm1_angular_velocity.powi(2)
+            * (arm2_angular_velocity.powi(2) * self.arm2_length
+                + arm1_angular_velocity.powi(2)
                     * self.arm1_length
-                    * (self.arm1_angular_position - self.arm2_angular_position).cos());
+                    * (arm1_angular_position - arm2_angular_position).cos());
 
         let denominator = self.arm1_length
             * (2.0 * self.bob1_mass + self.bob2_mass
                 - self.bob2_mass
-                    * (2.0 * self.arm1_angular_position - 2.0 * self.arm2_angular_position).cos());
+                    * (2.0 * arm1_angular_position - 2.0 * arm2_angular_position).cos());
 
         return (term1 + term2 + term3) / denominator;
     }
 
-    pub fn acc_arm2(&self) -> f64 {
-        let term1 = 2.0 * (self.arm1_angular_position - self.arm2_angular_position).sin();
+    pub fn acc_arm2_at_position(
+        &self,
+        arm1_angular_position: f64,
+        arm1_angular_velocity: f64,
+        arm2_angular_position: f64,
+        arm2_angular_velocity: f64,
+    ) -> f64 {
+        // Returns acceleration on arm2 from given position and velocity
+        let term1 = 2.0 * (arm1_angular_position - arm2_angular_position).sin();
 
-        let term2 = self.arm1_angular_velocity.powi(2)
-            * self.arm1_length
-            * (self.bob1_mass + self.bob2_mass);
+        let term2 =
+            arm1_angular_velocity.powi(2) * self.arm1_length * (self.bob1_mass + self.bob2_mass);
 
-        let term3 = G * (self.bob1_mass + self.bob2_mass) * (self.arm1_angular_position).cos();
+        let term3 = G * (self.bob1_mass + self.bob2_mass) * (arm1_angular_position).cos();
 
-        let term4 = self.arm2_angular_velocity.powi(2) * self.arm2_length
-            + self.bob2_mass * (self.arm1_angular_position - self.arm2_angular_position).cos();
+        let term4 = arm2_angular_velocity.powi(2) * self.arm2_length
+            + self.bob2_mass * (arm1_angular_position - arm2_angular_position).cos();
 
         let denominator = self.arm2_length
             * (2.0 * self.bob1_mass + self.bob2_mass
                 - self.bob2_mass
-                    * (2.0 * self.arm1_angular_position - 2.0 * self.arm2_angular_position).cos());
+                    * (2.0 * arm1_angular_position - 2.0 * arm2_angular_position).cos());
 
         return (term1 * (term2 + term3 + term4)) / denominator;
     }
