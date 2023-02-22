@@ -133,8 +133,11 @@ async fn main() {
         }
 
         if pause == false {
-            for pendulum in &mut pendulums {
-                pendulum.update(0.05);
+            for _i in 0..500 {
+                for pendulum in &mut pendulums {
+                    // pendulum.update(0.0, 0.0001);
+                    pendulum.update_rk4(0.0, 0.0001);
+                }
             }
         }
 
