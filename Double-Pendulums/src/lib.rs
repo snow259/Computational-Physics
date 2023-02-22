@@ -1,4 +1,5 @@
 pub const G: f64 = 9.81;
+use std::f64::consts::PI;
 
 pub struct Coordinates(pub f32, pub f32);
 
@@ -223,7 +224,22 @@ impl Pendulum {
         return (term1 * (term2 + term3 + term4)) / denominator;
     }
 
-    pub fn update(&mut self, h: f64) {
+    pub fn clean_angles(&mut self) {
+        // Keeps angles between -2 * PI to 2 * PI
+        if self.arm1_angular_position > 2.0 * PI {
+            self.arm1_angular_position = self.arm1_angular_position - 2.0 * PI;
+        } else if self.arm1_angular_position < -2.0 * PI {
+            self.arm1_angular_position = self.arm1_angular_position + 2.0 * PI;
+        }
+
+        if self.arm2_angular_position > 2.0 * PI {
+            self.arm2_angular_position = self.arm2_angular_position - 2.0 * PI;
+        } else if self.arm2_angular_position < -2.0 * PI {
+            self.arm2_angular_position = self.arm2_angular_position + 2.0 * PI;
+        }
+    }
+
+    pub fn update(&mut self, t: f64, h: f64) {
         let new_arm1_angular_velocity = self.arm1_angular_velocity + h * self.acc_arm1();
         let new_arm2_angular_velocity = self.arm2_angular_velocity + h * self.acc_arm2();
         let new_arm1_angular_position = self.arm1_angular_position + h * self.arm1_angular_velocity;
@@ -233,6 +249,7 @@ impl Pendulum {
         self.arm2_angular_velocity = new_arm2_angular_velocity;
         self.arm1_angular_position = new_arm1_angular_position;
         self.arm2_angular_position = new_arm2_angular_position;
+        self.clean_angles();
     }
 
     pub fn update_rk4_rhs(&self, t: f64, state: &PendulumState) -> PendulumState {
@@ -283,6 +300,8 @@ impl Pendulum {
                     + 2.0 * k2.arm2_angular_velocity
                     + 2.0 * k3.arm2_angular_velocity
                     + k4.arm2_angular_velocity);
+
+        self.clean_angles();
     }
 }
 
