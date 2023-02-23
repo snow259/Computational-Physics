@@ -150,6 +150,16 @@ impl Pendulum {
         return potential_energy * G;
     }
 
+    pub fn energy_potential_max(&self) -> f64 {
+        // Returns maximum possible potential energy when pendulums point straight up
+        // Useful to compute error as in this configuration, kinetic energy is zero
+        // Since total energy = kinetic energy + potential energy, and kinetic is zero,
+        // total energy = maximum potential energy
+        let max_potential_energy = (self.bob1_mass * self.arm1_length)
+            + (self.bob2_mass * (self.arm1_length + self.arm2_length));
+        return max_potential_energy * G;
+    }
+
     pub fn energy_total(&self) -> f64 {
         let total_energy = self.energy_potential() + self.energy_kinetic();
 
@@ -392,6 +402,28 @@ mod tests {
 
         assert!((pendulum1.energy_potential() - 981.0).abs() < FLOAT_TOLERANCE);
         assert!((pendulum2.energy_potential() - 3924.0).abs() < FLOAT_TOLERANCE);
+    }
+
+    #[test]
+    fn test_energy_potential_max() {
+        let pendulum1 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            ..Default::default()
+        };
+
+        let pendulum2 = Pendulum {
+            arm1_length: 10.0,
+            arm2_length: 10.0,
+            bob1_mass: 5.0,
+            bob2_mass: 15.0,
+            ..Default::default()
+        };
+
+        assert!((pendulum1.energy_potential_max() - 2943.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum2.energy_potential_max() - 3433.5).abs() < FLOAT_TOLERANCE);
     }
 
     #[test]
