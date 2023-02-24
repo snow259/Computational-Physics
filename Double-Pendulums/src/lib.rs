@@ -154,19 +154,25 @@ impl Pendulum {
     }
 
     pub fn energy_kinetic(&self) -> f64 {
-        // Kinetic energy formula comes from https://en.wikipedia.org/wiki/Double_pendulum#Analysis_and_interpretation
-        let moment_of_intertia1 = self.bob1_mass * self.arm1_length.powi(2);
-        let moment_of_intertia2 = self.bob2_mass * self.arm2_length.powi(2);
-        let mut kinetic_energy: f64 = 0.0;
-
-        kinetic_energy = kinetic_energy + moment_of_intertia1 * self.arm1_angular_velocity.powi(2);
-        kinetic_energy = kinetic_energy + moment_of_intertia2 * self.arm2_angular_velocity.powi(2);
+        // Kinetic energy sources:
+        // https://rotations.berkeley.edu/the-double-pendulum/
+        // http://www.maths.surrey.ac.uk/explore/michaelspages/documentation/Double.pdf
+        // https://www.phys.lsu.edu/faculty/gonzalez/Teaching/Phys7221/DoublePendulum.pdf
+        let bob1_velocity = self.arm1_length * self.arm1_angular_velocity;
+        let bob2_velocity = self.arm2_length * self.arm2_angular_velocity;
+        let mut kinetic_energy = 0.0;
+        kinetic_energy = kinetic_energy + 0.5 * self.bob1_mass * bob1_velocity.powi(2);
         kinetic_energy = kinetic_energy
-            + self.bob1_mass * (self.arm1_length * self.arm1_angular_velocity).powi(2);
-        kinetic_energy = kinetic_energy
-            + self.bob2_mass * (self.arm2_length * self.arm2_angular_velocity).powi(2);
+            + 0.5
+                * self.bob2_mass
+                * (bob1_velocity.powi(2)
+                    + bob2_velocity.powi(2)
+                    + 2.0
+                        * bob1_velocity
+                        * bob2_velocity
+                        * (self.arm1_angular_position - self.arm2_angular_position).cos());
 
-        return kinetic_energy * 0.5;
+        return kinetic_energy;
     }
 
     pub fn energy_potential(&self) -> f64 {
@@ -382,6 +388,8 @@ mod tests {
             bob2_mass: 10.0,
             arm1_angular_velocity: 1.0,
             arm2_angular_velocity: 1.0,
+            arm1_angular_position: 0.0,
+            arm2_angular_position: 0.0,
             ..Default::default()
         };
 
@@ -392,10 +400,12 @@ mod tests {
             bob2_mass: 10.0,
             arm1_angular_velocity: -1.0,
             arm2_angular_velocity: 0.0,
+            arm1_angular_position: 0.0,
+            arm2_angular_position: 0.0,
             ..Default::default()
         };
 
-        assert!((pendulum1.energy_kinetic() - 2000.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum1.energy_kinetic() - 2500.0).abs() < FLOAT_TOLERANCE);
         assert!((pendulum2.energy_kinetic() - 1000.0).abs() < FLOAT_TOLERANCE);
     }
 
