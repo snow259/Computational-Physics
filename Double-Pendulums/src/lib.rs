@@ -103,9 +103,40 @@ pub struct Pendulum {
     // angular velocity in rad/s, +vs is counter-clockwise
     pub arm1_angular_velocity: f64,
     pub arm2_angular_velocity: f64,
+    // computed at initialisation in new()
+    // stores maximum possible potential energy
+    // used to compute error as at rest, kinetic energy is zero
+    // and pendulums are initialised at rest
+    // since total energy = kinetic energy + potential energy, and kinetic is zero,
+    // total energy = maximum potential energy
+    pub potential_energy_max: f64,
 }
 
 impl Pendulum {
+    pub fn new(
+        bob1_mass: f64,
+        bob2_mass: f64,
+        arm1_length: f64,
+        arm2_length: f64,
+        arm1_angular_position: f64,
+        arm2_angular_position: f64,
+    ) -> Pendulum {
+        let mut pendulum = Pendulum {
+            bob1_mass: bob1_mass,
+            bob2_mass: bob2_mass,
+            arm1_length: arm1_length,
+            arm2_length: arm2_length,
+            arm1_angular_position: arm1_angular_position,
+            arm2_angular_position: arm2_angular_position,
+            arm1_angular_velocity: 0.0,
+            arm2_angular_velocity: 0.0,
+            potential_energy_max: 0.0,
+        };
+        pendulum.potential_energy_max = pendulum.energy_potential();
+
+        return pendulum;
+    }
+
     pub fn bob_coordinates(&self) -> BobCoordinates {
         // Coordinates are returned keeping origin at the base of the pendulum
         let bob1_x = self.arm1_length * self.arm1_angular_position.sin();
@@ -148,16 +179,6 @@ impl Pendulum {
             + self.bob2_mass * (height_pendulum_base + bob_coordinates.bob2_y);
 
         return potential_energy * G;
-    }
-
-    pub fn energy_potential_max(&self) -> f64 {
-        // Returns maximum possible potential energy when pendulums point straight up
-        // Useful to compute error as in this configuration, kinetic energy is zero
-        // Since total energy = kinetic energy + potential energy, and kinetic is zero,
-        // total energy = maximum potential energy
-        let max_potential_energy = (self.bob1_mass * self.arm1_length)
-            + (self.bob2_mass * (self.arm1_length + self.arm2_length));
-        return max_potential_energy * G;
     }
 
     pub fn energy_total(&self) -> f64 {
@@ -405,25 +426,12 @@ mod tests {
     }
 
     #[test]
-    fn test_energy_potential_max() {
-        let pendulum1 = Pendulum {
-            arm1_length: 10.0,
-            arm2_length: 10.0,
-            bob1_mass: 10.0,
-            bob2_mass: 10.0,
-            ..Default::default()
-        };
+    fn test_potential_energy_max() {
+        let pendulum1 = Pendulum::new(10.0, 10.0, 10.0, 10.0, 1.0 * PI, 1.0 * PI);
+        let pendulum2 = Pendulum::new(5.0, 15.0, 10.0, 10.0, 0.0 * PI, 0.0 * PI);
 
-        let pendulum2 = Pendulum {
-            arm1_length: 10.0,
-            arm2_length: 10.0,
-            bob1_mass: 5.0,
-            bob2_mass: 15.0,
-            ..Default::default()
-        };
-
-        assert!((pendulum1.energy_potential_max() - 2943.0).abs() < FLOAT_TOLERANCE);
-        assert!((pendulum2.energy_potential_max() - 3433.5).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum1.potential_energy_max - 6867.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum2.potential_energy_max - 490.5).abs() < FLOAT_TOLERANCE);
     }
 
     #[test]
@@ -437,6 +445,7 @@ mod tests {
             arm2_angular_position: 0.0,
             arm1_angular_velocity: 1.0,
             arm2_angular_velocity: 1.0,
+            ..Default::default()
         };
 
         let pendulum2 = Pendulum {
@@ -448,6 +457,7 @@ mod tests {
             arm2_angular_position: 0.0,
             arm1_angular_velocity: -1.0,
             arm2_angular_velocity: 0.0,
+            ..Default::default()
         };
 
         assert!(
@@ -473,6 +483,7 @@ mod tests {
             arm2_angular_position: 0.0 * PI,
             arm1_angular_velocity: 0.0,
             arm2_angular_velocity: 0.0,
+            ..Default::default()
         };
 
         let pendulum2 = Pendulum {
@@ -484,6 +495,7 @@ mod tests {
             arm2_angular_position: 0.5 * PI,
             arm1_angular_velocity: 0.0,
             arm2_angular_velocity: 0.0,
+            ..Default::default()
         };
 
         assert!(pendulum1.acc_arm1() - 0.0 < FLOAT_TOLERANCE);
@@ -501,6 +513,7 @@ mod tests {
             arm2_angular_position: 1.5 * PI,
             arm1_angular_velocity: 0.0,
             arm2_angular_velocity: 0.0,
+            ..Default::default()
         };
 
         let pendulum2 = Pendulum {
@@ -512,6 +525,7 @@ mod tests {
             arm2_angular_position: 0.5 * PI,
             arm1_angular_velocity: 0.0,
             arm2_angular_velocity: 0.0,
+            ..Default::default()
         };
 
         assert!(pendulum1.acc_arm2() - 0.0 < FLOAT_TOLERANCE);

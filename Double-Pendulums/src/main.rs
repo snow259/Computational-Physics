@@ -1,30 +1,38 @@
 use std::f64::consts::PI;
 
-use ::rand::prelude::*;
+// use ::rand::prelude::*;
 use double_pendulums::*;
 use macroquad::prelude::*;
 
 fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
-    let mut rng = thread_rng();
+    // let mut rng = thread_rng();
 
     let mut pendulums: Vec<Pendulum> = Vec::new();
     for _i in 0..n_pendulums {
-        pendulums.push(Pendulum {
-            bob1_mass: 10.0,
-            bob2_mass: 10.0,
-            arm1_length: 100.0,
-            arm2_length: 100.0,
-            // arm1_angular_position: rng.gen_range(-6.28..6.28),
-            // arm2_angular_position: rng.gen_range(-6.28..6.28),
-            // arm1_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
-            // arm2_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
-            arm1_angular_position: 0.5 * PI,
-            arm2_angular_position: 0.500000001 * PI,
-            // arm1_angular_velocity: rng.gen_range(-PI..PI),
-            // arm2_angular_velocity: rng.gen_range(-PI..PI),
-            arm1_angular_velocity: 0.0,
-            arm2_angular_velocity: 0.0,
-        });
+        // pendulums.push(Pendulum {
+        //     bob1_mass: 10.0,
+        //     bob2_mass: 10.0,
+        //     arm1_length: 100.0,
+        //     arm2_length: 100.0,
+        //     // arm1_angular_position: rng.gen_range(-6.28..6.28),
+        //     // arm2_angular_position: rng.gen_range(-6.28..6.28),
+        //     // arm1_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
+        //     // arm2_angular_position: rng.gen_range(-2.0 * PI..2.0 * PI),
+        //     arm1_angular_position: 0.5 * PI,
+        //     arm2_angular_position: 0.500000001 * PI,
+        //     // arm1_angular_velocity: rng.gen_range(-PI..PI),
+        //     // arm2_angular_velocity: rng.gen_range(-PI..PI),
+        //     arm1_angular_velocity: 0.0,
+        //     arm2_angular_velocity: 0.0,
+        // });
+        pendulums.push(Pendulum::new(
+            10.0,
+            10.0,
+            100.0,
+            100.0,
+            0.5 * PI,
+            0.500000001 * PI,
+        ));
     }
 
     return pendulums;
@@ -49,14 +57,18 @@ fn draw_energy(pendulums: &Vec<double_pendulums::Pendulum>) {
     let mut kinetic_energy = 0.0;
     let mut potential_energy = 0.0;
     let mut total_energy = 0.0;
+    let mut max_potenital_energy = 0.0;
+    let mut error_energy = 0.0;
     for pendulum in pendulums {
         kinetic_energy = kinetic_energy + pendulum.energy_kinetic();
         potential_energy = potential_energy + pendulum.energy_potential();
         total_energy = total_energy + pendulum.energy_total();
+        max_potenital_energy = max_potenital_energy + pendulum.potential_energy_max;
+        error_energy = error_energy + pendulum.energy_total() - pendulum.potential_energy_max;
     }
 
     draw_text(
-        &format!("Kinetic Energy: {} J", kinetic_energy),
+        &format!("Kinetic Energy: {:.5} J", kinetic_energy),
         10.0,
         20.0,
         20.0,
@@ -64,7 +76,7 @@ fn draw_energy(pendulums: &Vec<double_pendulums::Pendulum>) {
     );
 
     draw_text(
-        &format!("Potential Energy: {} J", potential_energy),
+        &format!("Potential Energy: {:.5} J", potential_energy),
         10.0,
         40.0,
         20.0,
@@ -72,9 +84,25 @@ fn draw_energy(pendulums: &Vec<double_pendulums::Pendulum>) {
     );
 
     draw_text(
-        &format!("Total Energy: {} J", total_energy),
+        &format!("Total Energy: {:.5} J", total_energy),
         10.0,
         60.0,
+        20.0,
+        BLACK,
+    );
+
+    draw_text(
+        &format!("Maximum Potenital Energy: {:.5} J", max_potenital_energy),
+        10.0,
+        80.0,
+        20.0,
+        BLACK,
+    );
+
+    draw_text(
+        &format!("Error in Energy: {:.5} J", error_energy),
+        10.0,
+        100.0,
         20.0,
         BLACK,
     );
