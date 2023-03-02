@@ -276,6 +276,22 @@ impl Pendulum {
         }
     }
 
+    pub fn update(&mut self, t0: f64, t1: f64, h: f64, method: &str) {
+        let mut t = t0;
+        while t < t1 {
+            if method == "euler" {
+                self.update_euler(t, h);
+            } else if method == "semi_implicit_euler" {
+                self.update_semi_implicit_euler(t, h);
+            } else if method == "rk4" {
+                self.update_rk4(t, h);
+            } else {
+                panic!("Invalid integrator option");
+            }
+            t = t + h;
+        }
+    }
+
     pub fn update_euler(&mut self, t: f64, h: f64) {
         let new_arm1_angular_velocity = self.arm1_angular_velocity + h * self.acc_arm1();
         let new_arm2_angular_velocity = self.arm2_angular_velocity + h * self.acc_arm2();

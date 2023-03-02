@@ -145,7 +145,14 @@ async fn main() {
     let mut show_ui = true;
     let mut pause = true;
 
-    let mut pendulums = new_pendulums(1);
+    let mut t0 = 0.0;
+    let frame_time_increment = 0.05;
+    let h = 0.01;
+    let method1 = "euler";
+    let method2 = "semi_implicit_euler";
+    let method3 = "rk4";
+
+    let mut pendulums = new_pendulums(3);
     loop {
         clear_background(LIGHTGRAY);
 
@@ -161,12 +168,10 @@ async fn main() {
         }
 
         if pause == false {
-            for _i in 0..500 {
-                for pendulum in &mut pendulums {
-                    // pendulum.update(0.0, 0.0001);
-                    pendulum.update_rk4(0.0, 0.0001);
-                }
-            }
+            pendulums[0].update(t0, t0 + frame_time_increment, h, method1);
+            pendulums[1].update(t0, t0 + frame_time_increment, h, method2);
+            pendulums[2].update(t0, t0 + frame_time_increment, h, method3);
+            t0 = t0 + frame_time_increment;
         }
 
         for pendulum in &pendulums {
