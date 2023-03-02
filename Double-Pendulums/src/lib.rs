@@ -276,7 +276,7 @@ impl Pendulum {
         }
     }
 
-    pub fn update(&mut self, t: f64, h: f64) {
+    pub fn update_euler(&mut self, t: f64, h: f64) {
         let new_arm1_angular_velocity = self.arm1_angular_velocity + h * self.acc_arm1();
         let new_arm2_angular_velocity = self.arm2_angular_velocity + h * self.acc_arm2();
         let new_arm1_angular_position = self.arm1_angular_position + h * self.arm1_angular_velocity;
@@ -289,7 +289,21 @@ impl Pendulum {
         self.clean_angles();
     }
 
-    pub fn update_rk4_rhs(&self, t: f64, state: &PendulumState) -> PendulumState {
+    pub fn update_semi_implicit_euler(&mut self, t: f64, h: f64) {
+        let new_arm1_angular_velocity = self.arm1_angular_velocity + h * self.acc_arm1();
+        let new_arm2_angular_velocity = self.arm2_angular_velocity + h * self.acc_arm2();
+        self.arm1_angular_velocity = new_arm1_angular_velocity;
+        self.arm2_angular_velocity = new_arm2_angular_velocity;
+
+        let new_arm1_angular_position = self.arm1_angular_position + h * self.arm1_angular_velocity;
+        let new_arm2_angular_position = self.arm2_angular_position + h * self.arm2_angular_velocity;
+        self.arm1_angular_position = new_arm1_angular_position;
+        self.arm2_angular_position = new_arm2_angular_position;
+
+        self.clean_angles();
+    }
+
+    pub fn rk4_rhs(&self, t: f64, state: &PendulumState) -> PendulumState {
         let output = PendulumState {
             arm1_angular_position: state.arm1_angular_velocity,
             arm1_angular_velocity: self.acc_arm1_at_position(state),
@@ -307,10 +321,10 @@ impl Pendulum {
             arm2_angular_velocity: self.arm2_angular_velocity,
         };
 
-        let k1 = self.update_rk4_rhs(t, &state);
-        let k2 = self.update_rk4_rhs(t + 0.5 * h, &state.add_state(k1.scale_state(0.5 * h)));
-        let k3 = self.update_rk4_rhs(t + 0.5 * h, &state.add_state(k2.scale_state(0.5 * h)));
-        let k4 = self.update_rk4_rhs(t + h, &state.add_state(k3.scale_state(h)));
+        let k1 = self.rk4_rhs(t, &state);
+        let k2 = self.rk4_rhs(t + 0.5 * h, &state.add_state(k1.scale_state(0.5 * h)));
+        let k3 = self.rk4_rhs(t + 0.5 * h, &state.add_state(k2.scale_state(0.5 * h)));
+        let k4 = self.rk4_rhs(t + h, &state.add_state(k3.scale_state(h)));
 
         self.arm1_angular_position = self.arm1_angular_position
             + (h / 6.0)
