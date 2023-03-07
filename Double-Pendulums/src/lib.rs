@@ -171,6 +171,20 @@ impl Pendulum {
                         * bob1_velocity
                         * bob2_velocity
                         * (self.arm1_angular_position - self.arm2_angular_position).cos());
+        // let mut kinetic_energy = 0.0;
+        // kinetic_energy = kinetic_energy
+        //     + 0.5 * self.bob1_mass * self.arm1_length.powi(2) * self.arm1_angular_velocity.powi(2);
+        // kinetic_energy = kinetic_energy
+        //     + 0.5
+        //         * self.bob2_mass
+        //         * (self.arm2_length.powi(2) * self.arm2_angular_velocity.powi(2)
+        //             + 2.0
+        //                 * self.arm1_length
+        //                 * self.arm2_length
+        //                 * self.arm1_angular_velocity
+        //                 * self.arm2_angular_velocity
+        //                 * (self.arm1_angular_position - self.arm2_angular_position).cos()
+        //             + self.arm1_length.powi(2) * self.arm1_angular_velocity.powi(2));
 
         return kinetic_energy;
     }
@@ -249,8 +263,10 @@ impl Pendulum {
 
         let term3 = G * (self.bob1_mass + self.bob2_mass) * (state.arm1_angular_position).cos();
 
-        let term4 = state.arm2_angular_velocity.powi(2) * self.arm2_length
-            + self.bob2_mass * (state.arm1_angular_position - state.arm2_angular_position).cos();
+        let term4 = state.arm2_angular_velocity.powi(2)
+            * self.arm2_length
+            * self.bob2_mass
+            * (state.arm1_angular_position - state.arm2_angular_position).cos();
 
         let denominator = self.arm2_length
             * (2.0 * self.bob1_mass + self.bob2_mass
@@ -568,7 +584,22 @@ mod tests {
             ..Default::default()
         };
 
-        assert!(pendulum1.acc_arm2() - 0.0 < FLOAT_TOLERANCE);
-        assert!(pendulum2.acc_arm2() - 0.0 < FLOAT_TOLERANCE);
+        // This particular state arises from the Jupyter Notebook implementation
+        // RK4 with h = 0.01, on the 1000th index
+        let pendulum3 = Pendulum {
+            arm1_length: 100.0,
+            arm2_length: 100.0,
+            bob1_mass: 10.0,
+            bob2_mass: 10.0,
+            arm1_angular_position: 3.1424357386212893,
+            arm2_angular_position: 3.140478722190667,
+            arm1_angular_velocity: 0.00047841035932873357,
+            arm2_angular_velocity: -0.0006580958030288573,
+            ..Default::default()
+        };
+        println!("{}", pendulum3.acc_arm2());
+        assert!((pendulum1.acc_arm2() - 0.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum2.acc_arm2() - 0.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum3.acc_arm2() - -0.00038396302819984884).abs() < FLOAT_TOLERANCE);
     }
 }
