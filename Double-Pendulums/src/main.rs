@@ -46,11 +46,23 @@ fn draw_pendulum(pendulum: &Pendulum, x_centre: f32, y_centre: f32, radius: f32,
     let x2 = x_centre + bob_coordinates.bob2_x as f32;
     let y2 = y_centre - bob_coordinates.bob2_y as f32;
 
+    let bob_colour: Color;
+    if pendulum.integrator == 0 {
+        bob_colour = DARKGRAY;
+    } else if pendulum.integrator == 1 {
+        bob_colour = DARKBLUE;
+    } else if pendulum.integrator == 2 {
+        bob_colour = DARKGREEN;
+    } else if pendulum.integrator == 3 {
+        bob_colour = DARKPURPLE;
+    } else {
+        panic!("Invalid Pendulum.integrator");
+    }
     // Draw circles at bobs and connect center to bob1, and bob1 to bob2
     draw_line(x_centre, y_centre, x1, y1, thickness, BLACK);
     draw_line(x1, y1, x2, y2, thickness, BLACK);
-    draw_circle(x1, y1, radius, DARKGRAY);
-    draw_circle(x2, y2, radius, DARKGRAY);
+    draw_circle(x1, y1, radius, bob_colour);
+    draw_circle(x2, y2, radius, bob_colour);
 }
 
 fn draw_energy(pendulums: &Vec<double_pendulums::Pendulum>) {
