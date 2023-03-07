@@ -148,11 +148,12 @@ async fn main() {
     let mut t0 = 0.0;
     let frame_time_increment = 0.05;
     let h = 0.01;
-    let method1 = "euler";
-    let method2 = "semi_implicit_euler";
-    let method3 = "rk4";
+    let method0 = "euler";
+    let method1 = "semi_implicit_euler";
+    let method2 = "rk4";
+    let method3 = "leap_frog";
 
-    let mut pendulums = new_pendulums(3);
+    let mut pendulums = new_pendulums(1);
     loop {
         clear_background(LIGHTGRAY);
 
@@ -168,9 +169,12 @@ async fn main() {
         }
 
         if pause == false {
-            pendulums[0].update(t0, t0 + frame_time_increment, h, method1);
-            pendulums[1].update(t0, t0 + frame_time_increment, h, method2);
-            pendulums[2].update(t0, t0 + frame_time_increment, h, method3);
+            pendulums[0].update(t0, t0 + frame_time_increment, h, method2);
+
+            // pendulums[0].update(t0, t0 + frame_time_increment, h, method0);
+            // pendulums[1].update(t0, t0 + frame_time_increment, h, method1);
+            // pendulums[2].update(t0, t0 + frame_time_increment, h, method2);
+            // pendulums[3].update(t0, t0 + frame_time_increment, h, method3);
             t0 = t0 + frame_time_increment;
         }
 

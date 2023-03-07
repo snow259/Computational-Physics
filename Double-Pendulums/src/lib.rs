@@ -110,6 +110,7 @@ pub struct Pendulum {
     // since total energy = kinetic energy + potential energy, and kinetic is zero,
     // total energy = maximum potential energy
     pub potential_energy_max: f64,
+    pub integrator: i8,
 }
 
 impl Pendulum {
@@ -131,6 +132,7 @@ impl Pendulum {
             arm1_angular_velocity: 0.0,
             arm2_angular_velocity: 0.0,
             potential_energy_max: 0.0,
+            ..Default::default()
         };
         pendulum.potential_energy_max = pendulum.energy_potential();
 
@@ -297,10 +299,16 @@ impl Pendulum {
         while t < t1 {
             if method == "euler" {
                 self.update_euler(t, h);
+                self.integrator = 0;
             } else if method == "semi_implicit_euler" {
                 self.update_semi_implicit_euler(t, h);
+                self.integrator = 1;
             } else if method == "rk4" {
                 self.update_rk4(t, h);
+                self.integrator = 2;
+            } else if method == "leap_frog" {
+                self.update_leap_frog(t, h);
+                self.integrator = 3;
             } else {
                 panic!("Invalid integrator option");
             }
