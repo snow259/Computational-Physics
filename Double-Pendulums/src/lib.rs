@@ -335,6 +335,41 @@ impl Pendulum {
         self.clean_angles();
     }
 
+    pub fn update_leap_frog(&mut self, t: f64, h: f64) {
+        let state0 = PendulumState {
+            arm1_angular_position: self.arm1_angular_position,
+            arm1_angular_velocity: self.arm1_angular_velocity,
+            arm2_angular_position: self.arm2_angular_position,
+            arm2_angular_velocity: self.arm2_angular_velocity,
+        };
+        let arm1_acc0 = self.acc_arm1_at_position(&state0);
+        let arm2_acc0 = self.acc_arm2_at_position(&state0);
+
+        let arm1_position1 = self.arm1_angular_position + self.arm1_angular_velocity * h;
+        let arm2_position1 = self.arm2_angular_position + self.arm2_angular_velocity * h;
+
+        let arm1_velocity1 = self.arm1_angular_velocity + arm1_acc0 * h;
+        let arm2_velocity1 = self.arm2_angular_velocity + arm2_acc0 * h;
+
+        let state1 = PendulumState {
+            arm1_angular_position: arm1_position1,
+            arm1_angular_velocity: arm1_velocity1,
+            arm2_angular_position: arm2_position1,
+            arm2_angular_velocity: arm2_velocity1,
+        };
+
+        let arm1_acc1 = self.acc_arm1_at_position(&state1);
+        let arm2_acc1 = self.acc_arm2_at_position(&state1);
+
+        let arm1_velocity2 = self.arm1_angular_velocity + arm1_acc1 * h;
+        let arm2_velocity2 = self.arm2_angular_velocity + arm2_acc1 * h;
+
+        self.arm1_angular_position = arm1_position1;
+        self.arm1_angular_velocity = arm1_velocity2;
+        self.arm2_angular_position = arm2_position1;
+        self.arm2_angular_velocity = arm2_velocity2;
+    }
+
     pub fn rk4_rhs(&self, t: f64, state: &PendulumState) -> PendulumState {
         let output = PendulumState {
             arm1_angular_position: state.arm1_angular_velocity,
