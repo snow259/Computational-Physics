@@ -163,15 +163,20 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    // Point thickness for pendulum bobs and base
     let radius = 5.0;
+    // Thickness of pendulum arms
     let thickness = 1.0;
 
     let mut show_ui = true;
     let mut pause = true;
 
+    // Starting time
     let mut t0 = 0.0;
+    // t + dt per frame
     let frame_time_increment = 0.05;
-    let h = 0.01;
+    // Step size for integration over time
+    let h = 0.0001;
     let method0 = "euler";
     let method1 = "semi_implicit_euler";
     let method2 = "rk4";

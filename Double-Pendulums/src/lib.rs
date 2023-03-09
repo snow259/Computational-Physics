@@ -173,6 +173,9 @@ impl Pendulum {
                         * bob1_velocity
                         * bob2_velocity
                         * (self.arm1_angular_position - self.arm2_angular_position).cos());
+
+        // Source for following equation:
+        // https://rjallain.medium.com/finding-the-equation-of-motion-for-a-double-pendulum-cff2635f99bd
         // let mut kinetic_energy = 0.0;
         // kinetic_energy = kinetic_energy
         //     + 0.5 * self.bob1_mass * self.arm1_length.powi(2) * self.arm1_angular_velocity.powi(2);
@@ -232,6 +235,7 @@ impl Pendulum {
     // acc_arm_at_position functions returns acceleration on arms from given position and velocity, and current arm length and mass
     pub fn acc_arm1_at_position(&self, state: &PendulumState) -> f64 {
         // Returns acceleration on arm1 from given position and velocity
+        // Source for acceleration equation: https://www.myphysicslab.com/pendulum/double-pendulum-en.html
         let term1 =
             -G * (2.0 * self.bob1_mass + self.bob2_mass) * (state.arm1_angular_position).sin();
 
@@ -257,6 +261,7 @@ impl Pendulum {
 
     pub fn acc_arm2_at_position(&self, state: &PendulumState) -> f64 {
         // Returns acceleration on arm2 from given position and velocity
+        // Source for acceleration equation: https://www.myphysicslab.com/pendulum/double-pendulum-en.html
         let term1 = 2.0 * (state.arm1_angular_position - state.arm2_angular_position).sin();
 
         let term2 = state.arm1_angular_velocity.powi(2)
@@ -628,7 +633,7 @@ mod tests {
         };
 
         // This particular state arises from the Jupyter Notebook implementation
-        // RK4 with h = 0.01, on the 1000th index
+        // RK4 with h = 0.01, starting at rest, on the 1000th index
         let pendulum3 = Pendulum {
             arm1_length: 100.0,
             arm2_length: 100.0,
