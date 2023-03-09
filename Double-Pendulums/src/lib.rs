@@ -603,7 +603,7 @@ mod tests {
         };
 
         assert!((pendulum1.acc_arm1() - 0.0).abs() < FLOAT_TOLERANCE);
-        assert!((pendulum2.acc_arm1() - 0.0).abs() < FLOAT_TOLERANCE);
+        assert!((pendulum2.acc_arm1() - -0.981).abs() < FLOAT_TOLERANCE);
     }
 
     #[test]
