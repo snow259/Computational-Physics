@@ -120,6 +120,20 @@ fn draw_energy(pendulums: &Vec<double_pendulums::Pendulum>) {
     );
 }
 
+fn draw_paused(x_centre: f32, y_centre: f32) {
+    let font_size = 20.0;
+    draw_text(
+        &format!("Paused"),
+        // Font width appears to be about half the font size
+        // "Paused" has 6 letters
+        // Thus, font width / 2 for the mid point, * font size for the pixel offset
+        x_centre - (3.0 / 2.0 * font_size),
+        y_centre / 4.0,
+        font_size,
+        BLACK,
+    );
+}
+
 fn toggle_ui(show_ui: &bool) -> bool {
     if show_ui == &true {
         return false;
@@ -149,8 +163,6 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let x_centre = screen_width() / 2.0;
-    let y_centre = screen_height() / 2.0;
     let radius = 5.0;
     let thickness = 1.0;
 
@@ -168,9 +180,15 @@ async fn main() {
     let mut pendulums = new_pendulums(1);
     loop {
         clear_background(LIGHTGRAY);
+        let x_centre = screen_width() / 2.0;
+        let y_centre = screen_height() / 2.0;
 
         if show_ui == true {
             draw_energy(&pendulums);
+
+            if pause == true {
+                draw_paused(x_centre, y_centre);
+            }
         }
 
         if is_key_pressed(KeyCode::F2) {
