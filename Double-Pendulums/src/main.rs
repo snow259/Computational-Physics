@@ -120,6 +120,26 @@ fn draw_energy(pendulums: &Vec<double_pendulums::Pendulum>) {
     );
 }
 
+fn draw_time_step(t0: f64, x_centre: f32, y_centre: f32) {
+    draw_text(
+        &format!("t: {:.2} s", t0),
+        x_centre * 2.0 - 100.0,
+        20.0,
+        20.0,
+        BLACK,
+    );
+}
+
+fn draw_fps(x_centre: f32, y_centre: f32) {
+    draw_text(
+        &format!("FPS: {:.2} Hz", get_fps()),
+        x_centre * 2.0 - 100.0,
+        40.0,
+        20.0,
+        BLACK,
+    );
+}
+
 fn draw_paused(x_centre: f32, y_centre: f32) {
     let font_size = 20.0;
     draw_text(
@@ -142,8 +162,8 @@ fn toggle_ui(show_ui: &bool) -> bool {
     }
 }
 
-fn toggle_pause(pause: &bool) -> bool {
-    if pause == &true {
+fn toggle_pause(paused: &bool) -> bool {
+    if paused == &true {
         return false;
     } else {
         return true;
@@ -169,7 +189,7 @@ async fn main() {
     let thickness = 1.0;
 
     let mut show_ui = true;
-    let mut pause = true;
+    let mut paused = true;
 
     // Starting time
     let mut t0 = 0.0;
@@ -190,8 +210,10 @@ async fn main() {
 
         if show_ui == true {
             draw_energy(&pendulums);
+            draw_time_step(t0, x_centre, y_centre);
+            draw_fps(x_centre, y_centre);
 
-            if pause == true {
+            if paused == true {
                 draw_paused(x_centre, y_centre);
             }
         }
@@ -200,10 +222,10 @@ async fn main() {
             show_ui = toggle_ui(&show_ui);
         }
         if is_key_pressed(KeyCode::Space) {
-            pause = toggle_pause(&pause);
+            paused = toggle_pause(&paused);
         }
 
-        if pause == false {
+        if paused == false {
             pendulums[0].update(t0, t0 + frame_time_increment, h, method2);
 
             // pendulums[0].update(t0, t0 + frame_time_increment, h, method0);
