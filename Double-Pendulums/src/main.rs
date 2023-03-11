@@ -4,11 +4,11 @@ use std::f64::consts::PI;
 use double_pendulums::*;
 use macroquad::prelude::*;
 
-fn new_pendulums(n_pendulums: isize) -> Vec<Pendulum> {
+fn new_pendulums(n_pendulums: isize, arm1_offset: f64, arm2_offset: f64) -> Vec<Pendulum> {
     // let mut rng = thread_rng();
 
     let mut pendulums: Vec<Pendulum> = Vec::new();
-    for _i in 0..n_pendulums {
+    for i in 0..n_pendulums {
         // pendulums.push(Pendulum {
         //     bob1_mass: 10.0,
         //     bob2_mass: 10.0,
@@ -202,7 +202,7 @@ async fn main() {
     let method2 = "rk4";
     let method3 = "leap_frog";
 
-    let mut pendulums = new_pendulums(1);
+    let mut pendulums = new_pendulums(1, 0.0, 0.0);
     loop {
         clear_background(LIGHTGRAY);
         let x_centre = screen_width() / 2.0;
@@ -226,7 +226,10 @@ async fn main() {
         }
 
         if paused == false {
-            pendulums[0].update(t0, t0 + frame_time_increment, h, method2);
+            for pendulum in &mut pendulums {
+                pendulum.update(t0, t0 + frame_time_increment, h, method2);
+            }
+            // pendulums[0].update(t0, t0 + frame_time_increment, h, method2);
 
             // pendulums[0].update(t0, t0 + frame_time_increment, h, method0);
             // pendulums[1].update(t0, t0 + frame_time_increment, h, method1);
