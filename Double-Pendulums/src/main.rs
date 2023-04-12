@@ -154,16 +154,8 @@ fn draw_paused(x_centre: f32, y_centre: f32) {
     );
 }
 
-fn toggle_ui(show_ui: &bool) -> bool {
-    if show_ui == &true {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-fn toggle_pause(paused: &bool) -> bool {
-    if paused == &true {
+fn toggle_state(state: &bool) -> bool {
+    if state == &true {
         return false;
     } else {
         return true;
@@ -219,10 +211,10 @@ async fn main() {
         }
 
         if is_key_pressed(KeyCode::F2) {
-            show_ui = toggle_ui(&show_ui);
+            show_ui = toggle_state(&show_ui);
         }
         if is_key_pressed(KeyCode::Space) {
-            paused = toggle_pause(&paused);
+            paused = toggle_state(&paused);
         }
 
         if paused == false {
