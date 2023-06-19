@@ -4,11 +4,20 @@ use std::f64::consts::PI;
 use double_pendulums::*;
 use macroquad::prelude::*;
 
-fn new_pendulums(n_pendulums: isize, arm1_offset: f64, arm2_offset: f64) -> Vec<Pendulum> {
+fn new_pendulums(
+    n_pendulums: isize,
+    arm1_offset: f64,
+    arm2_offset: f64,
+    initial_arm_ratio: f64,
+    arm_ratio_offset: f64,
+) -> Vec<Pendulum> {
     // let mut rng = thread_rng();
 
     let mut pendulums: Vec<Pendulum> = Vec::new();
     for i in 0..n_pendulums {
+        let total_length = 200.0;
+        let arm1_length = total_length * (initial_arm_ratio + i as f64 * arm_ratio_offset);
+        let arm2_length = total_length - arm1_length;
         // pendulums.push(Pendulum {
         //     bob1_mass: 10.0,
         //     bob2_mass: 10.0,
@@ -28,10 +37,12 @@ fn new_pendulums(n_pendulums: isize, arm1_offset: f64, arm2_offset: f64) -> Vec<
         pendulums.push(Pendulum::new(
             10.0,
             10.0,
-            100.0,
-            100.0,
-            0.5 * PI,
-            0.500000001 * PI,
+            arm1_length,
+            arm2_length,
+            // 0.5 * PI,
+            // 0.500000001 * PI,
+            1.00001 * PI + (i as f64 * arm1_offset),
+            1.0 * PI + (i as f64 * arm2_offset),
         ));
     }
 
@@ -194,7 +205,7 @@ async fn main() {
     let method2 = "rk4";
     let method3 = "leap_frog";
 
-    let mut pendulums = new_pendulums(1, 0.0, 0.0);
+    let mut pendulums = new_pendulums(300, 0.000000001, 0.0, 0.3, 0.00133);
     loop {
         clear_background(LIGHTGRAY);
         let x_centre = screen_width() / 2.0;
