@@ -10,12 +10,14 @@ fn new_pendulums(
     arm2_offset: f64,
     initial_arm_ratio: f64,
     arm_ratio_offset: f64,
+    inital_total_length: f64,
+    total_length_increment: f64,
 ) -> Vec<Pendulum> {
     // let mut rng = thread_rng();
 
     let mut pendulums: Vec<Pendulum> = Vec::new();
     for i in 0..n_pendulums {
-        let total_length = 200.0;
+        let total_length = inital_total_length + i as f64 * total_length_increment;
         let arm1_length = total_length * (initial_arm_ratio + i as f64 * arm_ratio_offset);
         let arm2_length = total_length - arm1_length;
         // pendulums.push(Pendulum {
@@ -205,7 +207,7 @@ async fn main() {
     let method2 = "rk4";
     let method3 = "leap_frog";
 
-    let mut pendulums = new_pendulums(300, 0.000000001, 0.0, 0.3, 0.00133);
+    let mut pendulums = new_pendulums(100, 0.000000001, 0.0, 0.3, 0.004, 100.0, 1.0);
     loop {
         clear_background(LIGHTGRAY);
         let x_centre = screen_width() / 2.0;
