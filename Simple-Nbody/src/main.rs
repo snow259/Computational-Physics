@@ -1,7 +1,7 @@
 use ::rand::prelude::*;
 use macroquad::prelude::*;
 
-pub const G: f32 = 10_000.0;
+pub const G: f32 = 6.67430 / 100_000_000_000.0;
 pub const H: f32 = 0.01;
 pub struct VectorArray {
     pub x: Vec<f32>,
@@ -17,7 +17,7 @@ fn generate_mass_vectors(n: u32) -> Vec<f32> {
     }
 
     for i in 0..mass_vectors.len() {
-        mass_vectors[i] = mass_vectors[i] * G;
+        mass_vectors[i] = G * mass_vectors[i] * 10_f32.powi(15);
     }
 
     return mass_vectors;
@@ -31,8 +31,8 @@ fn generate_velocity_vectors(n: u32) -> VectorArray {
     let mut rng = thread_rng();
 
     for _i in 0..n {
-        let vel_x: f32 = (rng.gen::<f32>() - 0.5) * 10.0;
-        let vel_y: f32 = (rng.gen::<f32>() - 0.5) * 10.0;
+        let vel_x: f32 = (rng.gen::<f32>() - 0.5) * 5.0;
+        let vel_y: f32 = (rng.gen::<f32>() - 0.5) * 5.0;
         velocity_vectors.x.push(vel_x);
         velocity_vectors.y.push(vel_y);
     }
@@ -50,10 +50,10 @@ fn generate_position_vectors(n: u32) -> VectorArray {
     for _i in 0..n {
         position_vectors
             .x
-            .push((rng.gen::<f32>() - 0.5) * screen_width() * 0.25 + screen_width() * 0.5);
+            .push((rng.gen::<f32>() - 0.5) * screen_width() * 0.5 + screen_width() * 0.5);
         position_vectors
             .y
-            .push((rng.gen::<f32>() - 0.5) * screen_height() * 0.25 + screen_height() * 0.5);
+            .push((rng.gen::<f32>() - 0.5) * screen_height() * 0.5 + screen_height() * 0.5);
     }
 
     return position_vectors;
@@ -97,7 +97,7 @@ fn compute_m_by_r_sq(m: f32, x1: f32, y1: f32, x2: f32, y2: f32) -> (f32, f32) {
     let rmag_sq = rx.powi(2) + ry.powi(2);
     let a = m / (rmag_sq + epsilon.powi(2)).powf(3.0 / 2.0);
 
-    return (a * (rx / rmag_sq.powf(0.5)), a * (ry / rmag_sq.powf(0.5)));
+    return (a * rx, a * ry);
 }
 
 fn update_euler<'a>(
@@ -140,7 +140,7 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let n = 1000;
+    let n = 500;
     let mass_vectors = generate_mass_vectors(n);
     let mut velocity_vectors = generate_velocity_vectors(n);
     let mut position_vectors = generate_position_vectors(n);
@@ -170,5 +170,29 @@ fn print_vector_array(vector_array: &VectorArray, name: &String) {
         let x = vector_array.x[i];
         let y = vector_array.y[i];
         print!("{i}: x = {x}, y = {y}\n");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{compute_m_by_r_sq, G};
+
+    const FLOAT_TOLERANCE: f32 = 0.000_1;
+
+    #[test]
+    fn test_compute_m_by_r_sq() {
+        let earth_mass = 3.986004418 * 10_f32.powi(14);
+        let earth_radius = 6371.0 * 10_f32.powi(3);
+        let earth_surface_acc = 9.82025;
+
+        let (acc_x, acc_y) = compute_m_by_r_sq(earth_mass, earth_radius, 0.0, 0.0, 0.0);
+        print!("{acc_x}, {acc_y}");
+
+        assert!((acc_x + earth_surface_acc).abs() < FLOAT_TOLERANCE);
+        assert!((acc_y - 0.0).abs() < FLOAT_TOLERANCE);
+
+        let (acc_x, acc_y) = compute_m_by_r_sq(earth_mass, 0.0, earth_radius, 0.0, 0.0);
+        assert!((acc_x - 0.0).abs() < FLOAT_TOLERANCE);
+        assert!((acc_y + earth_surface_acc).abs() < FLOAT_TOLERANCE);
     }
 }
