@@ -3,6 +3,7 @@ use macroquad::prelude::*;
 
 pub const G: f32 = 6.67430 / 100_000_000_000.0;
 pub const H: f32 = 0.01;
+pub const SAVE_SCREENSHOT: bool = false;
 pub struct VectorArray {
     pub x: Vec<f32>,
     pub y: Vec<f32>,
@@ -140,6 +141,7 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut iter = 0;
     let n = 500;
     let mass_vectors = generate_mass_vectors(n);
     let mut velocity_vectors = generate_velocity_vectors(n);
@@ -160,6 +162,13 @@ async fn main() {
 
         clear_background(BLACK);
         draw_particles(&position_vectors);
+
+        if SAVE_SCREENSHOT == true {
+            let path = format!("./screenshots/{}.png", iter);
+            let screenshot = get_screen_data();
+            screenshot.export_png(&path);
+        }
+        iter += 1;
         next_frame().await
     }
 }
