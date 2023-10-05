@@ -164,3 +164,6 @@ Cargo.lock
 
 # For JetBrains
 .idea/
+
+# For screenshot outputs from Simple-NBody
+Simple-NBody/screenshots
