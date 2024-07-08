@@ -1,16 +1,14 @@
-class Euler:
+from .solver import Solver
+
+
+class Euler(Solver):
     def __init__(self, fun, t_span, y0, h):
-        self.fun = fun  # Function to integrate
-        self.t_span = t_span  # Span of t to integrate across, [t_start, t_end]
-        self.y0 = y0  # Initial value, [n, ]
-        self.y = y0  # Estimation at step
-        self.iteration = 0  # Current iteration
-        self.t = t_span[0]  # Current t
-        self.t_prev = t_span[0]
-        self.h = h  # Step size
+        Solver.__init__(self, fun, t_span, y0, h)
 
     def step(self):
         self.t_prev = self.t
+
+        # Checks to see if current step goes past t_end in t_span, reduces h if it does
         if self.t + self.h > self.t_span[1]:
             self.t = self.t_span[1]
             h = self.t - self.t_prev
