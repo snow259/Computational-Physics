@@ -1,5 +1,6 @@
 [project]
 name = "odetest"
 version = "0.0.1"
+dependencies = ["pytest", "numpy"]
 [build-system]
 requires = ["setuptools", "wheel"]

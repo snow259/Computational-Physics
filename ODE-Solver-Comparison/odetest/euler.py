@@ -15,16 +15,14 @@ class Euler(Solver):
         else:
             h = self.h
 
+        fun_eval = self.fun(self.t, self.y)
+        self.y += h * fun_eval
+
         self.t += h
         self.iteration += 1
-        fun_eval = self.fun(self.t, self.y)
-
-        for i in range(len(self.y0)):
-            self.y[i] += h * fun_eval[i]
 
     def solve(self):
         while self.t <= self.t_span[1]:
             self.step()
-            # self.y, self.t = self.step(self.fun, self.t, self.y, self.h)
 
         return self.t, self.y, self.iteration
