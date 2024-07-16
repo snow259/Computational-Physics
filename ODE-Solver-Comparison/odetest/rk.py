@@ -25,12 +25,6 @@ class RungeKutta4(Solver):
         self.t += h
         self.iteration += 1
 
-    def solve(self):
-        while self.t <= self.t_span[1]:
-            self.step()
-
-        return self.t, self.y, self.iteration
-
 
 class RungeKutta38Rule(Solver):
     # Uses the 3/8 rule which has better accuracy than the classic RK4 but requires more computation
@@ -55,9 +49,3 @@ class RungeKutta38Rule(Solver):
         self.y += (k1 + 3 * k2 + 3 * k3 + k4) * (h / 8)
         self.t += h
         self.iteration += 1
-
-    def solve(self):
-        while self.t <= self.t_span[1]:
-            self.step()
-
-        return self.t, self.y, self.iteration

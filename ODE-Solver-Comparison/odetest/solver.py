@@ -8,3 +8,12 @@ class Solver:
         self.t = t_span[0]  # Current t
         self.t_prev = t_span[0]
         self.h = h  # Step size
+
+    def step(self):
+        pass
+
+    def solve(self):
+        while self.t <= self.t_span[1]:
+            self.step()
+
+        return self.t, self.y, self.iteration

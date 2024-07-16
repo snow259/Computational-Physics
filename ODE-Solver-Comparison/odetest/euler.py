@@ -20,9 +20,3 @@ class Euler(Solver):
 
         self.t += h
         self.iteration += 1
-
-    def solve(self):
-        while self.t <= self.t_span[1]:
-            self.step()
-
-        return self.t, self.y, self.iteration
