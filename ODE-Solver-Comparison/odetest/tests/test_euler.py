@@ -23,3 +23,4 @@ class TestEuler:
         actual = y
 
         assert pytest.approx(expected, 1e-4) == actual
+        # assert t <= t_span[1]
