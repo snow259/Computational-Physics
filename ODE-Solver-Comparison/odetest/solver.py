@@ -10,7 +10,7 @@ class Solver:
         self.h = h  # Step size
 
     def step(self):
-        pass
+        NotImplemented
 
     def solve(self):
         while self.t <= self.t_span[1]:

@@ -1,51 +1,48 @@
 from .solver import Solver
+import numpy as np
 
 
-class RungeKutta4(Solver):
+class RungeKutta(Solver):
+    def step(self):
+        Q = np.zeros(self.n_stages)
+        self.t_prev = self.t
+
+        # Checks to see if current step goes past t_end in t_span, reduces h if it does
+        if self.t + self.h > self.t_span[1]:
+            self.t = self.t_span[1]
+            h = self.t - self.t_prev
+        else:
+            h = self.h
+
+        for i in range(self.n_stages):
+            Q[i] = self.fun(self.t + self.C[i] * h, self.y + np.sum(Q.T * self.A[i]) * h)
+
+        self.y += np.sum(Q.T * self.B) * h
+        self.t += h
+        self.iteration += 1
+
+
+class RungeKutta4(RungeKutta):
     # Classic 4th order Runge Kutta
-    def __init__(self, fun, t_span, y0, h):
-        Solver.__init__(self, fun, t_span, y0, h)
-
-    def step(self):
-        self.t_prev = self.t
-
-        # Checks to see if current step goes past t_end in t_span, reduces h if it does
-        if self.t + self.h > self.t_span[1]:
-            self.t = self.t_span[1]
-            h = self.t - self.t_prev
-        else:
-            h = self.h
-
-        k1 = self.fun(self.t, self.y)
-        k2 = self.fun(self.t + 0.5 * h, self.y + k1 * 0.5 * h)
-        k3 = self.fun(self.t + 0.5 * h, self.y + k2 * 0.5 * h)
-        k4 = self.fun(self.t + h, self.y + k3 * h)
-
-        self.y += (k1 + 2 * k2 + 2 * k3 + k4) * (h / 6)
-        self.t += h
-        self.iteration += 1
+    C = np.array([0, 1 / 2, 1 / 2, 1])
+    A = np.array([
+        [0, 0, 0, 0],
+        [1 / 2, 0, 0, 0],
+        [0, 1 / 2, 0, 0],
+        [0, 0, 1, 0],
+    ])
+    B = np.array([1 / 6, 1 / 3, 1 / 3, 1 / 6])
+    n_stages = 4
 
 
-class RungeKutta38Rule(Solver):
+class RungeKutta38Rule(RungeKutta):
     # Uses the 3/8 rule which has better accuracy than the classic RK4 but requires more computation
-    def __init__(self, fun, t_span, y0, h):
-        Solver.__init__(self, fun, t_span, y0, h)
-
-    def step(self):
-        self.t_prev = self.t
-
-        # Checks to see if current step goes past t_end in t_span, reduces h if it does
-        if self.t + self.h > self.t_span[1]:
-            self.t = self.t_span[1]
-            h = self.t - self.t_prev
-        else:
-            h = self.h
-
-        k1 = self.fun(self.t, self.y)
-        k2 = self.fun(self.t + (1 / 3) * h, self.y + k1 * (1 / 3) * h)
-        k3 = self.fun(self.t + (2 / 3) * h, self.y + (k1 * (-1 / 3) + k2) * h)
-        k4 = self.fun(self.t + h, self.y + (k1 - k2 + k3) * h)
-
-        self.y += (k1 + 3 * k2 + 3 * k3 + k4) * (h / 8)
-        self.t += h
-        self.iteration += 1
+    C = np.array([0, 1 / 3, 2 / 3, 1])
+    A = np.array([
+        [0, 0, 0, 0],
+        [1 / 3, 0, 0, 0],
+        [-1 / 3, 1, 0, 0],
+        [1, -1, 1, 0],
+    ])
+    B = np.array([1 / 8, 3 / 8, 3 / 8, 1 / 8])
+    n_stages = 4
