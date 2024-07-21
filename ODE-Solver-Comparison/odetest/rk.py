@@ -4,7 +4,8 @@ import numpy as np
 
 class RungeKutta(Solver):
     def step(self):
-        Q = np.zeros(self.n_stages)
+        # Q = np.zeros(self.n_stages)
+        K = np.array([[0.] * self.order] * self.n_stages)
         self.t_prev = self.t
 
         # Checks to see if current step goes past t_end in t_span, reduces h if it does
@@ -14,10 +15,14 @@ class RungeKutta(Solver):
         else:
             h = self.h
 
-        for i in range(self.n_stages):
-            Q[i] = self.fun(self.t + self.C[i] * h, self.y + np.sum(Q.T * self.A[i]) * h)
+        K[0] = self.fun(self.t, self.y)
+        # print(self.y)
+        # print(Q)
+        for i in range(1, self.n_stages):
+            K[i] = self.fun(self.t + self.C[i] * h, self.y + (np.sum(K.T * self.A[i], axis=1).T * h))
 
-        self.y += np.sum(Q.T * self.B) * h
+        # print(self. y, K, self.B)
+        self.y += np.dot(K.T, self.B) * h
         self.t += h
         self.iteration += 1
 
