@@ -9,8 +9,8 @@ class RungeKutta(Solver):
 
         # Checks to see if current step goes past t_end in t_span, reduces h if it does
         if self.t + self.h > self.t_span[1]:
-            self.t = self.t_span[1]
-            h = self.t - self.t_prev
+            h = self.t_span[1] - self.t
+            self.solved = True
         else:
             h = self.h
 
