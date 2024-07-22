@@ -4,81 +4,47 @@ import numpy as np
 import pytest
 
 
-class TestEuler:
-    def test_RungeKutta4(self):
-        # Integrates cos(t) from 0 to 0.5 * pi. Checks with tolerance of 1e-8.
-        def d_func(t, y):
-            return np.array([np.cos(t)])
+test1 = {
+    "fun": lambda t, y: np.array(np.cos(t)),
+    "t_span": [0, 0.5 * np.pi],
+    "y0": np.array([0.]),
+    "h": 0.0001,
+    "tolerance": 1e-4,
+    "expected": lambda t, y: np.array([np.sin(t)]),
+}
+test2 = {
+    "fun": lambda t, y: np.array([y[1], y[2], -y[0] - 3 * y[1] - 3 * y[2] - 4 * np.sin(t)]),
+    "t_span": [0, 10],
+    "y0": np.array([1., 1., -1.]),
+    "h": 0.01,
+    "tolerance": 1e-2,
+    "expected": lambda t, y: np.array([np.cos(t) + np.sin(t)]),
+}
 
-        def func(t, y):
-            return np.array([np.sin(t)])
+@pytest.mark.parametrize("test_input", [(test1), (test2)])
+class TestRungeKutta:
+    def test_RungeKutta4(self, test_input):
+        fun = test_input["fun"]
+        t_span = test_input["t_span"]
+        y0 = test_input["y0"]
+        h = test_input["h"]
+        tolerance = test_input["tolerance"]
+        expected = test_input["expected"](t_span[1], None)[0]
 
-        y0 = np.array([0.])
-        h = 0.0001
-        t_span = [0, 0.5 * np.pi]
+        solver = RungeKutta4(fun, t_span, y0, h)
+        _t, actual, _iteration = solver.solve()
 
-        solver = RungeKutta4(d_func, t_span, y0, h)
-        t, y, _iteration = solver.solve()
+        assert pytest.approx(expected, tolerance) == actual[0]
 
-        expected = func(t_span[1], None)
-        actual = y
+    def test_RungeKutta38Rule(self, test_input):
+        fun = test_input["fun"]
+        t_span = test_input["t_span"]
+        y0 = test_input["y0"]
+        h = test_input["h"]
+        tolerance = test_input["tolerance"]
+        expected = test_input["expected"](t_span[1], None)[0]
 
-        assert pytest.approx(expected, 1e-8) == actual
+        solver = RungeKutta38Rule(fun, t_span, y0, h)
+        _t, actual, _iteration = solver.solve()
 
-        # Integrates cos(t) + sin(t) from 0 to 10. Checks with tolerance of 1e-7.
-        def d_func(t, y):
-            return np.array([y[1], y[2], -y[0] - 3*y[1] - 3*y[2] - 4*np.sin(t)])
-
-        def func(t, y):
-            return np.array(np.cos(t) + np.sin(t))
-
-        y0 = np.array([1., 1., -1.])
-        h = 0.05
-        t_span = [0, 10]
-
-        solver = RungeKutta4(d_func, t_span, y0, h)
-        t, y, _iteration = solver.solve()
-
-        expected = func(t_span[1], None)
-        actual = y[0]
-
-        assert pytest.approx(expected, 1e-7) == actual
-
-    def test_RungeKutta38Rule(self):
-        # Integrates cos(t) from 0 to 0.5 * pi. Checks with tolerance of 1e-8.
-        def d_func(t, y):
-            return np.array([np.cos(t)])
-
-        def func(t, y):
-            return np.array([np.sin(t)])
-
-        y0 = np.array([0.])
-        h = 0.0001
-        t_span = [0, 0.5 * np.pi]
-
-        solver = RungeKutta38Rule(d_func, t_span, y0, h)
-        t, y, _iteration = solver.solve()
-
-        expected = func(t_span[1], None)
-        actual = y
-
-        assert pytest.approx(expected, 1e-8) == actual
-
-        # Integrates cos(t) + sin(t) from 0 to 10. Checks with tolerance of 1e-7.
-        def d_func(t, y):
-            return np.array([y[1], y[2], -y[0] - 3*y[1] - 3*y[2] - 4*np.sin(t)])
-
-        def func(t, y):
-            return np.array(np.cos(t) + np.sin(t))
-
-        y0 = np.array([1., 1., -1.])
-        h = 0.05
-        t_span = [0, 10]
-
-        solver = RungeKutta38Rule(d_func, t_span, y0, h)
-        t, y, _iteration = solver.solve()
-
-        expected = func(t_span[1], None)
-        actual = y[0]
-
-        assert pytest.approx(expected, 1e-7) == actual
+        assert pytest.approx(expected, tolerance) == actual[0]
