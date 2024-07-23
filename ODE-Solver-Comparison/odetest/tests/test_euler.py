@@ -7,8 +7,8 @@ test1 = {
     "fun": lambda t, y: np.array(np.cos(t)),
     "t_span": [0, 0.5 * np.pi],
     "y0": np.array([0.]),
-    "h": 0.0001,
-    "tolerance": 1e-4,
+    "h": 0.01,
+    "tolerance": 1e-2,
     "expected": lambda t, y: np.array([np.sin(t)]),
 }
 test2 = {

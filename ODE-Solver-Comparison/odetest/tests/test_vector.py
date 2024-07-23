@@ -17,7 +17,7 @@ class TestVector:
         assert vec2 == vec1
 
     def test_mag(self):
-        # Compare two times magnitude of vector to magnitude of dot product of same vector with two, should be equal
+        # Compare two times magnitude of vector to magnitude of the product of same vector with two, should be equal
         vec1 = Vector2(1, 1)
 
         assert 2 * (vec1.mag()) == (2 * vec1).mag()

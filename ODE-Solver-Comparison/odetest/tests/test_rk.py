@@ -1,5 +1,6 @@
 from odetest.rk import RungeKutta4
 from odetest.rk import RungeKutta38Rule
+from odetest.rk import DormandPrince
 import numpy as np
 import pytest
 
@@ -8,8 +9,8 @@ test1 = {
     "fun": lambda t, y: np.array(np.cos(t)),
     "t_span": [0, 0.5 * np.pi],
     "y0": np.array([0.]),
-    "h": 0.0001,
-    "tolerance": 1e-4,
+    "h": 0.01,
+    "tolerance": 1e-11,
     "expected": lambda t, y: np.array([np.sin(t)]),
 }
 test2 = {
@@ -17,9 +18,10 @@ test2 = {
     "t_span": [0, 10],
     "y0": np.array([1., 1., -1.]),
     "h": 0.01,
-    "tolerance": 1e-2,
+    "tolerance": 1e-9,
     "expected": lambda t, y: np.array([np.cos(t) + np.sin(t)]),
 }
+
 
 @pytest.mark.parametrize("test_input", [(test1), (test2)])
 class TestRungeKutta:
@@ -45,6 +47,19 @@ class TestRungeKutta:
         expected = test_input["expected"](t_span[1], None)[0]
 
         solver = RungeKutta38Rule(fun, t_span, y0, h)
+        _t, actual, _iteration = solver.solve()
+
+        assert pytest.approx(expected, tolerance) == actual[0]
+
+    def test_DormandPrince(self, test_input):
+        fun = test_input["fun"]
+        t_span = test_input["t_span"]
+        y0 = test_input["y0"]
+        h = test_input["h"]
+        tolerance = test_input["tolerance"]
+        expected = test_input["expected"](t_span[1], None)[0]
+
+        solver = DormandPrince(fun, t_span, y0, h)
         _t, actual, _iteration = solver.solve()
 
         assert pytest.approx(expected, tolerance) == actual[0]

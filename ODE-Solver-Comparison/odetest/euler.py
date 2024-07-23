@@ -2,6 +2,9 @@ from .solver import Solver
 
 
 class Euler(Solver):
+    order_accuracy = 1
+    order_error = 0
+
     def __init__(self, fun, t_span, y0, h):
         Solver.__init__(self, fun, t_span, y0, h)
 
