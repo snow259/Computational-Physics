@@ -11,6 +11,12 @@ Language: Rust
 
 Simulation: Double pendulums
 
+## ODE-Solver-Comparison
+
+Language: Python
+
+A performance comparison of different numerical methods of solving systems of ODEs. Currently in the early stages of development.
+
 ## Simple-Nbody
 
 Language: Rust
